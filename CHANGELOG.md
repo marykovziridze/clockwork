@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.1 (2026-10-01)
+
+**Changed**
+- The cycle figure in README.md is redrawn in the style of the launch film: bar ticks, and a hand that ticks round the dial and stops red one tick before Guard and Stop check, the two steps that can refuse. The motion is CSS inside the SVG, with no script; with reduced motion the hand stands still at Guard.
+
 ## 2.3.0 (2026-10-01)
 
 **Added**

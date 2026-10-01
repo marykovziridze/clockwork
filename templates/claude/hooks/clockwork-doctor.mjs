@@ -35,7 +35,7 @@ else try { ROWS = await import(REG_TOOL.href); } catch (e) { ROWS_ERR = e && e.m
 const offloadState = ROWS?.offloadState || bareOffload;
 const offloadNote = ROWS?.offloadNote || ((p) => `not checked: ${p} is offloaded by iCloud — open it in Finder or run \`brctl download "${p}"\`, then re-run`);
 
-const VERSION = '2.3.0'; // = the kit's VERSION file (test/installer.test.mjs keeps them equal)
+const VERSION = '2.3.1'; // = the kit's VERSION file (test/installer.test.mjs keeps them equal)
 // Documented defaults (CONTRACT §4). clockwork.json overrides any top-level key; agingDays merges per key.
 const DEFAULTS = {
   registryDir: '.claude', siteDir: '.',

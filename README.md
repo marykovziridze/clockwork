@@ -4,7 +4,7 @@ Clockwork is a kit of hooks, scripts and rules for client projects built with Cl
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/cycle-dark.svg">
-  <img src="docs/assets/cycle-light.svg" width="880" alt="One session drawn as a dial: 1 session start, 2 guard, 3 task list, 4 verify, 5 stop check. Guard and stop check can refuse. Every step reads or writes the registries.">
+  <img src="docs/assets/cycle-light.svg" width="880" alt="One session drawn as a dial: 1 session start, 2 guard, 3 task list, 4 verify, 5 stop check. The hand stops red before guard and stop check, the two steps that can refuse. Every step reads or writes the registries.">
 </picture>
 
 ## How a session runs
