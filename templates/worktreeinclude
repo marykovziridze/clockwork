@@ -1,0 +1,17 @@
+# Gitignored files Claude Code copies into every new worktree (.gitignore syntax).
+# A file is copied only if it matches a line here AND is gitignored.
+# Format: https://code.claude.com/docs/en/worktrees#copy-gitignored-files-into-worktrees
+.env
+.env.*
+.vercel/project.json
+# Clockwork kit: copied only where the project gitignores .claude/ on purpose (decision D13); where the kit is
+# committed these lines do nothing. Without them a worktree session there runs with no hooks (tested on 2.1.285).
+# Registries are not copied: the tools always write the main copy.
+.claude/settings.json
+.claude/clockwork.json
+.claude/hooks/**
+.claude/tools/**
+.claude/rules/**
+.claude/skills/**
+.claude/agents/**
+.claude/workflows/**

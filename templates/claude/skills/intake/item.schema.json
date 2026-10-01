@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "clockwork/intake/extraction",
+  "title": "Clockwork intake extraction (items.json)",
+  "description": "What an extraction returns. Every item carries a verbatim quote from source.md; intake.mjs drops an item whose quote is missing or not found. .claude/workflows/intake.js embeds the same item shape (a workflow cannot read files).",
+  "type": "object",
+  "required": [
+    "source",
+    "coverage",
+    "not_covered",
+    "items"
+  ],
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "Path of source.md, relative to the project root"
+    },
+    "coverage": {
+      "type": "object",
+      "required": [
+        "speakers",
+        "attachments",
+        "pages",
+        "lines"
+      ],
+      "properties": {
+        "speakers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Every speaker or sender, as named in the source"
+        },
+        "attachments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Every attachment or linked file, read or not"
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Pages, slides, sheets or columns read (incl. colour or severity columns)"
+        },
+        "lines": {
+          "type": "string",
+          "description": "Line ranges of source.md read, e.g. 1-420"
+        }
+      },
+      "additionalProperties": false
+    },
+    "not_covered": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What was not read or could not be pulled, with the reason"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/item"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "item": {
+      "type": "object",
+      "required": [
+        "n",
+        "type",
+        "summary",
+        "quote",
+        "speaker",
+        "where",
+        "owner",
+        "due",
+        "confidence",
+        "new_scope",
+        "outward",
+        "conflicts"
+      ],
+      "properties": {
+        "n": {
+          "type": "integer",
+          "description": "Item number within this extraction, from 1"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "decision",
+            "client_ask",
+            "task",
+            "fact",
+            "deadline",
+            "risk",
+            "question_for_user",
+            "commitment",
+            "design_rule",
+            "client_approval"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "description": "One line in plain words; becomes the row title"
+        },
+        "quote": {
+          "type": "string",
+          "description": "Exact words from source.md that support the item. Never paraphrased."
+        },
+        "speaker": {
+          "type": "string",
+          "description": "Who said it, as named in the source, or 'unknown'"
+        },
+        "where": {
+          "type": "string",
+          "description": "Timestamp, line, page or slide"
+        },
+        "owner": {
+          "type": "string",
+          "description": "Who must act; empty string if none"
+        },
+        "due": {
+          "type": "string",
+          "description": "YYYY-MM-DD, or the words used ('next week'), or empty"
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "new_scope": {
+          "type": "boolean",
+          "description": "Work not in the signed quote: a commercial question, never a task"
+        },
+        "outward": {
+          "type": "boolean",
+          "description": "Asks for an action toward someone outside (send, publish, delete, share)"
+        },
+        "closes_when": {
+          "type": "string",
+          "description": "Tasks: the measurable end state"
+        },
+        "fact_key": {
+          "type": "string",
+          "description": "Facts and deadlines: the FACTS line or obligation name it changes"
+        },
+        "value": {
+          "type": "string",
+          "description": "Facts and deadlines: the new value as stated"
+        },
+        "ref": {
+          "type": "string",
+          "description": "design_rule: the design-system.md row it changes (SP-2), empty if new; client_approval: the Q-<n> row approved"
+        },
+        "metric": {
+          "type": "object",
+          "required": [
+            "claim",
+            "producible",
+            "evidence"
+          ],
+          "properties": {
+            "claim": {
+              "type": "string"
+            },
+            "producible": {
+              "type": "string",
+              "enum": [
+                "yes",
+                "no",
+                "unchecked"
+              ]
+            },
+            "evidence": {
+              "type": "string",
+              "description": "Table, column or report that produces it, or why not"
+            }
+          },
+          "additionalProperties": false
+        },
+        "conflicts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "with",
+              "detail"
+            ],
+            "properties": {
+              "with": {
+                "type": "string",
+                "description": "CD-<n>, 'FACTS: <line>', or another item n"
+              },
+              "detail": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "feedback_class": {
+          "type": "string",
+          "enum": [
+            "real_defect",
+            "false_positive",
+            "overclaim",
+            "decision_given",
+            "scope_change",
+            "not_checked"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "clockworkVersion": "2.3.0",
+  "project": "Acme",
+  "stack": "nextjs",
+  "registryDir": ".claude",
+  "siteDir": ".",
+  "idPrefixes": { "T": "TASKS.md", "C": "CLIENT.md", "CD": "CLIENT.md", "A": "OPEN-ASKS.md", "Q": "APPROVAL-QUEUE.md" },
+  "commands": { "build": "", "lint": "", "test": "", "previewDeploy": "", "productionDeploy": "" },
+  "productionPatterns": ["vercel --prod", "vercel deploy --prod", "gh pr merge", "git push [^ ]+ [^ ]*:main"],
+  "sizeBudgets": {
+    "AGENTS.md": { "warn": 7000, "error": 8192 },
+    "CLAUDE.md": { "warn": 1800, "error": 2048 },
+    ".claude/rules/design-system.md": { "warn": 20480, "error": 28672 },
+    "TASKS.md": { "warn": 160000, "error": 400000 },
+    "CLIENT.md": { "warn": 120000, "error": 300000 },
+    "FACTS.md": { "warn": 20000, "error": 40000 },
+    "DOC-MAP.md": { "warn": 6000, "error": 8192 },
+    "MEETING-LOG.md": { "warn": 120000, "error": 300000 }
+  },
+  "rowBudget": 1500,
+  "headerBudget": 1500,
+  "mustRead": ["AGENTS.md", "CLAUDE.md"],
+  "mustReadBudget": 10240,
+  "agingDays": { "openClientAsk": 14, "touchpoint": 14, "builtUnverified": 7, "warnAge": 7 },
+  "backupDir": "PM/archive/registry-backups",
+  "overnight": { "stopAt": "06:00", "sessionName": "acme-overnight" }
+}
