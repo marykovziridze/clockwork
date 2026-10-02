@@ -57,7 +57,7 @@ Each result was graded by checks on the code, by `next build`, and by a blind re
 
 Clockwork ran twice. The first grading built its worktrees with a second copy of React, so batch 1's builds are not counted; its reviews and checks are, and they are shown. Results: [`2026-10-02-build-quality.json`](../benchmarks/results/2026-10-02-build-quality.json).
 
-On these tasks Clockwork did not build better than Claude Code with the same rules in one `CLAUDE.md`, and it cost more. With one session, a small task and every fact in one note, Claude already gets the facts right. Clockwork's extra tool calls go to its process: a task ID, a separate worktree, and installing packages into that worktree. Not measured: scattered or conflicting facts, several sessions at once, long sessions.
+Build quality was the same in all three set-ups (7.4 to 7.7 out of 10, every build passing, the client's facts right). Clockwork's process costs more per task: a task ID, a separate worktree, and installing packages into that worktree. The next release makes the separate worktree happen only when another session is running. Not measured: scattered or conflicting facts, several sessions at once, long sessions.
 
 ## Cost
 
