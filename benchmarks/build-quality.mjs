@@ -169,7 +169,9 @@ const appText = (tree) => {
 };
 
 function build(tree) {
-  const r = spawnSync(path.join(DEPS, 'node_modules/.bin/next'), ['build'], { cwd: tree, encoding: 'utf8', env: { ...cleanEnv(), NEXT_TELEMETRY_DISABLED: '1' }, timeout: 300000 });
+  // A session that installed packages in its own worktree builds with those: mixing two copies of React fails the build.
+  const own = path.join(tree, 'node_modules/.bin/next');
+  const r = spawnSync(fs.existsSync(own) ? own : path.join(DEPS, 'node_modules/.bin/next'), ['build'], { cwd: tree, encoding: 'utf8', env: { ...cleanEnv(), NEXT_TELEMETRY_DISABLED: '1' }, timeout: 300000 });
   return { ok: r.status === 0, tail: `${r.stdout || ''}${r.stderr || ''}`.split('\n').slice(-12).join('\n') };
 }
 
@@ -239,7 +241,8 @@ if (cmd === 'setup') {
 }
 if (cmd === 'run') {
   const OUT = a1, N = Number(a2 || 3); fs.mkdirSync(OUT, { recursive: true });
-  const lanes = []; for (const task of Object.keys(TASKS)) for (const arm of ARMS) lanes.push({ task, arm });
+  const only = process.env.ONLY ? process.env.ONLY.split(',') : null; // e.g. ONLY=classes-clockwork
+  const lanes = []; for (const task of Object.keys(TASKS)) for (const arm of ARMS) if (!only || only.includes(`${task}-${arm}`)) lanes.push({ task, arm });
   await Promise.all(lanes.map(async ({ task, arm }) => {
     for (let n = 1; n <= N; n++) {
       const name = `${task}-${arm}-${n}`, dir = path.join(ROOT, name), log = path.join(OUT, `${name}.jsonl`);
@@ -248,10 +251,10 @@ if (cmd === 'run') {
       const r = readLog(log), tree = resultTree(dir, baseSha), diff = appDiff(tree, baseSha);
       fs.writeFileSync(path.join(OUT, `${name}.diff`), diff);
       const c = checks(task, tree, diff), b = build(tree), j = await judge(task, diff, path.join(OUT, `${name}.judge.json`));
-      const res = { name, task, arm, exit: code, cost: r.cost, turns: r.turns, tools: r.tools, resultIn: path.relative(ROOT, tree), build: b.ok, checks: c, judge: j, final: r.final };
+      const res = { name, task, arm, exit: code, cost: r.cost, turns: r.turns, tools: r.tools, resultIn: path.relative(ROOT, tree), build: b.ok, buildTail: b.ok ? '' : b.tail, checks: c, judge: j, final: r.final };
       fs.writeFileSync(path.join(OUT, `${name}.json`), JSON.stringify(res, null, 2));
       // a run's project, its origin and any worktree it made are gone once graded: builds are about 150 MB each
-      for (const e of fs.readdirSync(ROOT)) if (e === name || e.startsWith(`${name}.`) || e.startsWith(`${name}-`)) fs.rmSync(path.join(ROOT, e), { recursive: true, force: true });
+      if (!process.env.KEEP) for (const e of fs.readdirSync(ROOT)) if (e === name || e.startsWith(`${name}.`) || e.startsWith(`${name}-`)) fs.rmSync(path.join(ROOT, e), { recursive: true, force: true });
       console.log(`${name}: judge ${j.score ?? '?'} · build ${b.ok ? 'ok' : 'FAIL'} · $${(r.cost || 0).toFixed(2)} · ${JSON.stringify(c)}`);
     }
   }));

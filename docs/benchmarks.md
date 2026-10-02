@@ -37,9 +37,27 @@ Memory made no difference here: with three short notes inside the repository and
 
 The intake run also found three defects, fixed in 2.3.2 (see the [changelog](../CHANGELOG.md)).
 
-## 3. Build quality per dollar
+## 3. Build quality per dollar (2026-10-02)
 
-Results follow.
+Three ordinary client tasks on a site with design tokens, a client facts note and an API route: a class schedule page built from the facts, a newsletter signup with approved consent text, and new opening hours. Three set-ups, three runs each:
+- **bare**: `CLAUDE.md` points to the client note.
+- **rules**: Clockwork's rule text (hard rules, engineering, design system) pasted into one `CLAUDE.md`, with no hooks, tools or registries.
+- **clockwork**: the kit installed, with the facts and decisions in its registries.
+
+Each result was graded by checks on the code, by `next build`, and by a blind reviewer (Claude Sonnet 5.5, one turn, no tools) that sees only the task, the client facts and the diff.
+
+| | bare | rules | clockwork |
+|---|---|---|---|
+| Reviewer score, out of 10 | 7.4 | 7.7 | 7.6 (batch 1: 7.0) |
+| Reviewer says ready to ship | 6 of 9 | 7 of 9 | 6 of 9 (batch 1: 3 of 9) |
+| Builds | 9 of 9 | 9 of 9 | 9 of 9 |
+| Client facts right | all | all | all (batch 1: old hours left on the homepage once, approved consent text left out once) |
+| Cost per task | $0.16 | $0.20 | $0.22 (batch 1: $0.35) |
+| Tool calls per task | 9.3 | 8.9 | 14.6 (batch 1: 16.4) |
+
+Clockwork ran twice. The first grading built its worktrees with a second copy of React, so batch 1's builds are not counted; its reviews and checks are, and they are shown. Results: [`2026-10-02-build-quality.json`](../benchmarks/results/2026-10-02-build-quality.json).
+
+On these tasks Clockwork did not build better than Claude Code with the same rules in one `CLAUDE.md`, and it cost more. With one session, a small task and every fact in one note, Claude already gets the facts right. Clockwork's extra tool calls go to its process: a task ID, a separate worktree, and installing packages into that worktree. Not measured: scattered or conflicting facts, several sessions at once, long sessions.
 
 ## Cost
 
@@ -49,6 +67,7 @@ Clockwork's process costs tokens: a task ID, a worktree, a file claim and the re
 |---|---|---|
 | Parallel and overnight | $0.16 | $0.24 |
 | Client memory | $0.15 | $0.19 |
+| Build quality | $0.16 (rules in `CLAUDE.md`: $0.20) | $0.22 to $0.35 |
 
 ## Running them yourself
 

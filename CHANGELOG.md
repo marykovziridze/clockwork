@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.3 (2026-10-02)
+
+**Added**
+- `docs/benchmarks.md` and `benchmarks/`: three benchmarks run on real Claude Code sessions, each with its script and cleaned results. Parallel and overnight: Clockwork took the bad outcome from 4 of 4 and 3 of 4 runs to 0 of 4. Client memory: no difference when the notes sit in the repository. Build quality: no better than the same rules in one `CLAUDE.md`, at a higher cost.
+
 ## 2.3.2 (2026-10-02)
 
 **Fixed** (found by running intake on a real model for the first time)
