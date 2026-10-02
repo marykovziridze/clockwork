@@ -49,7 +49,7 @@ In the kit folder, `node --test --test-timeout=180000 test/` runs every test off
 
 ## More
 
-[Why it is built this way](WHY.md) · [Sharing a copy safely](docs/sharing.md) · [Changelog](CHANGELOG.md)
+[Benchmarks](docs/benchmarks.md) · [Why it is built this way](WHY.md) · [Sharing a copy safely](docs/sharing.md) · [Changelog](CHANGELOG.md)
 
 ## License
 

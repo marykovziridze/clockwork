@@ -57,6 +57,10 @@ test('mint, next, append, status: one write each, counter bumped, row verified',
   assert.equal(run(root, ['status', 'T-2', '🔧 BUILT']).last, 'OK T-2');
   t = fs.readFileSync(tasks(root), 'utf8');
   assert.match(t, /^\| T-2 \| second \| 🔧 BUILT · evidence a \|$/m);
+  // `append <ID> "…"` without --text works too: sessions wrote it that way in two separate live runs
+  assert.equal(run(root, ['append', 'T-2', 'evidence', 'b']).last, 'OK T-2');
+  t = fs.readFileSync(tasks(root), 'utf8');
+  assert.match(t, /^\| T-2 \| second \| 🔧 BUILT · evidence a · evidence b \|$/m);
   // refusals exit 1 and leave the file alone
   const before = sha(tasks(root));
   for (const args of [['status', 'T-2', 'DONE'], ['status', 'T-2', '🚀 LIVE-UNVERIFIED'], ['append', 'T-99', '--text', 'x'], ['mint', 'T', '--title', 'x'.repeat(1600)], ['mint', 'Z', '--title', 'x']]) {

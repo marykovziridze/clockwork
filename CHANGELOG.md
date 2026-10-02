@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.3.2 (2026-10-02)
+
+**Fixed** (found by running intake on a real model for the first time)
+- Intake gave every task the deploy class `tbd`, which `registry.mjs` does not accept. Tasks now carry `preview` or `ship`: the extractor may set `deploy_class`, and `preview` is the default. A project's own older routing.md with `tbd` is mended when the plan is made.
+- A promise to send something read "User approves: We owe: …", and one without a date ended in an empty "due". It now reads "User approves: …", and no "due" appears without a date. The due date also kept its space ("Sam · due …", not "Sam· due …").
+- `registry.mjs append <ID> "…"` without `--text` was refused. Sessions wrote it that way in two separate live runs; it now works.
+- 872 offline tests (869 pass, 3 skipped without `CLOCKWORK_LIVE=1`), run 2026-10-02.
+
 ## 2.3.1 (2026-10-01)
 
 **Changed**

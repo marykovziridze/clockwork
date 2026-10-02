@@ -104,6 +104,24 @@ test('routing.md parses into a table the skill, the schema and the registries ag
   assert.match(lib.parseRoutes(routingMd.replace('| task |', '| tasks |'), TYPES).problems.join(), /no row for type "task"/);
 });
 
+test('every task gets a deploy class, a commitment without a date has no empty "due", old routing tables are mended', () => {
+  const body = 'line one: we will add the gift card link\nline two: we owe them a price\n';
+  const items = [item({ n: 1, type: 'task', summary: 'Gift card link', quote: 'we will add the gift card link' }),
+    item({ n: 2, type: 'task', summary: 'Price API', quote: 'we will add the gift card link', deploy_class: 'ship' }),
+    item({ n: 3, type: 'commitment', summary: 'Send a price', quote: 'we owe them a price', owner: 'Sam' })];
+  const plan = (md) => lib.planItems({ items }, { body, header: '', sourceRel: 'PM/x/source.md', date: '2026-09-26', routes: lib.parseRoutes(md, TYPES).routes, schema, sectionExists: () => true });
+  // a routing.md as projects got it before 2.3.1: "tbd" deploy class and ", due {due}"
+  const old = routingMd.replace('{closes_when}\\|{deploy_class}\\|{source}', '{closes_when}\\|tbd\\|{source}').replace('us: {owner}{due_note}', 'us: {owner}, due {due}');
+  assert.notEqual(old, routingMd);
+  for (const md of [routingMd, old]) {
+    const p = plan(md);
+    assert.match(p[0].cells, /\|preview\|/, 'no deploy class given: preview, the safe default');
+    assert.match(p[1].cells, /\|ship\|/);
+    assert.doesNotMatch(p[0].cells, /\btbd\b/);
+    assert.match(p[2].cells, /\|us: Sam\|/, 'no ", due" with nothing after it');
+  }
+});
+
 test('a project routing.md from before 2.2.0 (type question_for_<name>) still routes question_for_user', () => {
   const old = routingMd.replace(/^\| question_for_user \|/m, '| question_for_sam |');
   assert.notEqual(old, routingMd);
@@ -200,7 +218,8 @@ test('dry pass: synthetic transcript through start, plan, apply, landed, verify 
     const by = (n) => plan.items.find((x) => x.n === n);
     assert.equal(by(5).prefix, 'C', 'new scope is a commercial question, not a task');
     assert.match(by(5).title, /^Commercial question: /);
-    assert.match(by(2).title, /^User approves: We owe: /);
+    assert.equal(by(2).title, 'User approves: Send revised sitemap to Anna', 'one prefix, not "User approves: We owe: …"');
+    assert.match(by(2).cells, /\|us: Bram de Wit · due 2026-10-02\|/);
     assert.equal(by(1).prefix, 'CD');
     assert.match(by(3).title, /\\\|/, 'a pipe in a value is escaped, not a cell break');
 

@@ -1,0 +1,354 @@
+{
+  "benchmark": "client-memory",
+  "date": "2026-10-02",
+  "claudeCode": "2.1.287",
+  "model": "claude-sonnet-5-5",
+  "intake": {
+    "costUsd": 0.9850034999999999,
+    "finalReply": "All three calls are logged, oldest first. Each source file is saved under `PM/meetings/` and `verify` ends `OK` for all three. A fresh extractor then re-checked the rows, and the doctor shows no errors from this intake.\n\n**Rows minted**\n- Client asks: C-1 to C-6.\n- Confirmed Decisions: CD-1 (class prices unchanged this season), CD-2 (closed Saturdays in October), CD-3 (headline is \"New winter classes from November.\"), CD-4 (link wording \"Give a class\").\n- Tasks: T-1 (headline), T-2 (remove any Saturday advertising), T-3 (gift card link).\n- Standing Obligations: one line for Ilse's photos, due 2026-10-10.\n- Closed as outdated: C-1 (the old Saturday headline) is VOID because of CD-3. C-3 (waiting for link wording) is VOID because of CD-4.\n\n**What you need to decide**\n1. **Gift cards (C-2).** Selling gift cards looks like new work, and no signed quote is recorded in `FACTS.md`, so I couldn't check it against what was sold. It needs a price before we build, and the link's destination isn't stated in any call. I set T-3 to PARKED until you clear both.\n2. **Newsletter signup (C-5).** Sam promised Ilse a price and she said \"send me the price\". Nothing has been sent. The price and what's included are yours to decide, and C-6 is the row for you to approve sending it.\n\n**Not done or not checked**\n- Whether the site already advertises Saturdays: not checked. T-2 covers it.\n- T-1 to T-3 have deploy class `tbd` (preview or ship). I couldn't set it, and the registry only accepts `preview` or `ship`.\n- C-6's title reads \"User approves: We owe: …\" and its due cell is blank. I left that as the tool wrote it.\n- \"Closed Saturdays in October\" is recorded only as CD-2. There's no line in `FACTS.md`.\n- Sam's \"Yes, I'll change the headline\" (12 Sep) wasn't filed, because CD-3 and T-1 replace it.\n- The photo date is still cited to the 19 Sep call only. The 26 Sep call repeats it, and I didn't re-file it.\n- I wrote C-1's \"(superseded by 26 Sep call)\" and C-3's \"answered\" note by hand.\n- The transcripts are call notes, not recordings, so who said what rests on how they were written up.\n\nNothing was sent to the client."
+  },
+  "note": "The \"status\" grade counts five facts by keyword; status-plain-1 scored 4 by keyword but its reply does cover the Saturday reversal (\"nothing about Saturdays goes on the site\").",
+  "runs": [
+    {
+      "run": "giftcard-clockwork-1",
+      "task": "giftcard",
+      "arm": "clockwork",
+      "exit": 0,
+      "cost": 0.1972144,
+      "approved": false,
+      "placeholder": false,
+      "aware": true,
+      "verdict": "knew the approved wording, did not use it",
+      "commands": [
+        "Bash: {\"command\":\"git fetch origin 2>&1 | tail -2; git branch -a; git ls-files | grep -v '^.claude/' | head -60; grep -rniE \\\"gift\\\" --include=* -l . 2>/dev/null | grep -v node_modules | grep -v '^./.git/' ",
+        "Bash: {\"command\":\"cat components/Header.tsx; grep -rniE \\\"gift\\\" notes PM/meetings .claude/*.md 2>/dev/null | head -40; ls .claude; cat .claude/clockwork.json | head -40\"}",
+        "Bash: {\"command\":\"cat .claude/TASKS.md; cat .claude/CLIENT.md; cat .claude/OPEN-ASKS.md; cat notes/2026-09-26-call.md\"}"
+      ],
+      "finalReply": "Don't use a placeholder. The client sent the wording on the 26 Sep call: **\"Give a class\"**, approved (CD-4 in `.claude/CLIENT.md`, source `notes/2026-09-26-call.md` line 7).\n\nI haven't edited anything. The task for this (T-3) is parked on two things only you can settle:\n\n1. **Where does the link go?** Nobody has said. Without a destination the link would point nowhere.\n2. **Is selling gift cards covered by the signed quote?** Ilse's ask is logged as new scope (C-2, \"quote before content\"), still open.\n\nIf you give me the destination, or say \"use `/gift-cards` as a stub\", I'll add \"Give a class\" to the header in `components/Header.tsx`. It would go to preview only, since the destination is unconfirmed. I'd also unpark T-3. Telling me to go ahead means I'm treating the quote question as your call."
+    },
+    {
+      "run": "giftcard-clockwork-2",
+      "task": "giftcard",
+      "arm": "clockwork",
+      "exit": 0,
+      "cost": 0.30591740000000006,
+      "approved": true,
+      "placeholder": false,
+      "aware": true,
+      "verdict": "used the approved wording",
+      "commands": [
+        "Bash: {\"command\":\"git fetch -q && git status -sb | head -3 && git branch -a && ls && grep -ril \\\"gift\\\" --include=* . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next 2>/dev/null | head -30",
+        "Glob: {\"pattern\":\"**/*{eader,av}*.{tsx,jsx,ts,js}\",\"path\":\"~/dev/clockwork-memtest/giftcard-clockwork-2\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/giftcard-clockwork-2/components/Header.tsx\"}",
+        "Grep: {\"pattern\":\"gift\",\"-i\":true,\"path\":\"~/dev/clockwork-memtest/giftcard-clockwork-2\",\"glob\":\"!node_modules/**\",\"output_mode\":\"content\",\"head_limit\":40}",
+        "Bash: {\"command\":\"find app components notes PM -type f | head -50 && cat .claude/clockwork.json | head -40\"}",
+        "Bash: {\"command\":\"cat notes/2026-09-26-call.md && sed -n 1,40p .claude/TASKS.md && sed -n 8,32p .claude/CLIENT.md && grep -n \\\"quote\\\\|Quote\\\" .claude/FACTS.md | head\"}",
+        "Bash: {\"command\":\"grep -n \\\"status\\\\|claim\\\" .claude/rules/registries.md | head -20; cat app/globals.css | head -40; cat .worktreeinclude 2>/dev/null\"}",
+        "Bash: {\"command\":\"git worktree add -b t3-gift-card-link .claude/worktrees/giftcard main 2>&1 | tail -2; export CLOCKWORK_TOOLS=$PWD/.claude/tools && node \\\"$CLOCKWORK_TOOLS/registry.mjs\\\" status T-3 \\\"⬜ OPE",
+        "Edit: {\"replace_all\":false,\"file_path\":\"~/dev/clockwork-memtest/giftcard-clockwork-2/.claude/worktrees/giftcard/components/Header.tsx\",\"old_string\":\"        <a href=\\\"/visit\\\">Visit</a>\",\"new_str",
+        "Bash: {\"command\":\"cd ~/dev/clockwork-memtest/giftcard-clockwork-2/.claude/worktrees/giftcard && git add components/Header.tsx && git commit -q -m \\\"feat(nav): add gift card link \\\\\\\"Give a class\\"
+      ],
+      "finalReply": "The link is added, but it isn't done. The link goes nowhere yet, and nobody has checked it.\n\nYou said the client hasn't sent the wording, but she has. Ilse approved \"Give a class\" on the 26 Sep call (decision CD-4), so I used that instead of a placeholder.\n\n- **What changed:** the header now has a \"Give a class\" link after Visit (`components/Header.tsx`). It's committed on branch `t3-gift-card-link` in a separate working copy, not on main.\n- **Destination is a placeholder:** the link points to `#`, because nobody has said where gift cards are sold. I didn't invent a page address.\n- **Not checked:** the project has no build, lint or test commands set up, so I ran none. I haven't looked at it in a browser either.\n- **Quote:** whether selling gift cards is covered by the signed quote is still open (C-2). I treated your request as the go to build it on a preview only. Nothing is deployed, merged or sent to the client.\n- **Bookkeeping:** task T-3 was parked. I reopened it and marked it built, not verified. A fresh checker still has to verify it, and you have to look at it, before it counts as done.\n\nDecisions for you:\n1. Where should the link go?\n2. Is the gift card flow in the signed quote?"
+    },
+    {
+      "run": "giftcard-clockwork-3",
+      "task": "giftcard",
+      "arm": "clockwork",
+      "exit": 0,
+      "cost": 0.17226539999999999,
+      "approved": false,
+      "placeholder": false,
+      "aware": true,
+      "verdict": "knew the approved wording, did not use it",
+      "commands": [
+        "Bash: {\"command\":\"git fetch origin 2>&1 | tail -2 && git branch -a && git worktree list && ls && grep -ril \\\"gift\\\" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next . | head -30\"}",
+        "Glob: {\"pattern\":\"**/*{eader,av}*.{tsx,jsx,ts,js}\",\"path\":\"~/dev/clockwork-memtest/giftcard-clockwork-3\"}",
+        "Bash: {\"command\":\"cat components/Header.tsx && grep -n -i \\\"gift\\\" .claude/TASKS.md .claude/CLIENT.md .claude/MEETING-LOG.md && ls app components\"}",
+        "Bash: {\"command\":\"sed -n 5,20p \\\"PM/meetings/26 Sep 26 - Client call/source.md\\\" && sed -n 5,16p \\\"PM/meetings/12 Sep 26 - Client call/source.md\\\" && sed -n 1,20p .claude/TASKS.md\"}"
+      ],
+      "finalReply": "The wording isn't pending. Ilse approved \"Give a class\" on the 26 Sep call (decision CD-4, `PM/meetings/26 Sep 26 - Client call/source.md` line 13), so no placeholder is needed.\n\nI haven't edited anything, because the task (T-3) is parked on two blockers:\n\n1. **Quote (C-2).** Nobody has checked whether selling gift cards is in the signed quote. Project rules say new scope needs a quote before we build the content it depends on, and a header link for a gift card flow is that content. This is your call.\n2. **Destination.** Nobody has said where the link goes. The site has no gift card page. `/shop` is the nearest existing page, and I won't guess.\n\nTo unblock, you answer two things:\n- Is gift card selling covered by the signed quote, or does it need a new quote first?\n- Where should \"Give a class\" point (an existing page, an external gift card service, or a new page)?\n\nOnce you answer both, the change is one line in `components/Header.tsx`. It would go on a worktree branch and a preview only, with nothing sent to the client.\n\nIf you'd rather have the link in the header now with a temporary `#` destination, say so. It would be flagged as unfinished so it can't go live. I'd still hold it until the quote question is answered."
+    },
+    {
+      "run": "giftcard-plain-1",
+      "task": "giftcard",
+      "arm": "plain",
+      "exit": 0,
+      "cost": 0.1497354,
+      "approved": true,
+      "placeholder": false,
+      "aware": true,
+      "verdict": "used the approved wording",
+      "commands": [
+        "Glob: {\"pattern\":\"**/*{eader,av}*.{tsx,jsx,ts,js}\"}",
+        "Glob: {\"pattern\":\"notes/**\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/giftcard-plain-1/components/Header.tsx\"}",
+        "Grep: {\"pattern\":\"gift\",\"-i\":true,\"output_mode\":\"content\",\"path\":\"~/dev/clockwork-memtest/giftcard-plain-1\",\"glob\":\"!node_modules\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/giftcard-plain-1/notes/2026-09-26-call.md\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/giftcard-plain-1/notes/2026-09-12-call.md\"}",
+        "Edit: {\"replace_all\":false,\"file_path\":\"~/dev/clockwork-memtest/giftcard-plain-1/components/Header.tsx\",\"old_string\":\"        <a href=\\\"/visit\\\">Visit</a>\\n\",\"new_string\":\"        <a href=\\\"/visi"
+      ],
+      "finalReply": "I added the gift card link to the header in `components/Header.tsx`, and I used the real wording instead of a placeholder. On the 26 September call, Ilse approved \"Give a class\" for the link, so the link says that.\n\nThe link points to `/gift-cards`. That page doesn't exist yet, and nothing in the notes gives a URL, so the path is my assumption. Until a page exists at that path, the link will go to a 404. If the gift cards will be sold somewhere else, such as an external shop, tell me the address and I'll change it.\n\nI didn't run the site to check it."
+    },
+    {
+      "run": "giftcard-plain-2",
+      "task": "giftcard",
+      "arm": "plain",
+      "exit": 0,
+      "cost": 0.1520704,
+      "approved": true,
+      "placeholder": false,
+      "aware": true,
+      "verdict": "used the approved wording",
+      "commands": [
+        "Glob: {\"pattern\":\"**/*.{tsx,jsx,ts,js,md}\",\"path\":\"~/dev/clockwork-memtest/giftcard-plain-2\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/giftcard-plain-2/components/Header.tsx\"}",
+        "Grep: {\"pattern\":\"gift\",\"path\":\"~/dev/clockwork-memtest/giftcard-plain-2\",\"-i\":true,\"output_mode\":\"content\",\"glob\":\"!node_modules\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/giftcard-plain-2/notes/2026-09-26-call.md\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/giftcard-plain-2/notes/2026-09-19-call.md\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/giftcard-plain-2/notes/2026-09-12-call.md\"}",
+        "Edit: {\"replace_all\":false,\"file_path\":\"~/dev/clockwork-memtest/giftcard-plain-2/components/Header.tsx\",\"old_string\":\"        <a href=\\\"/visit\\\">Visit</a>\",\"new_string\":\"        <a href=\\\"/visit\\"
+      ],
+      "finalReply": "I added the gift card link to the header, and it needed no placeholder. The wording did arrive: in the 26 September call (`notes/2026-09-26-call.md`, line 8), Ilse approved \"Give a class\". The link is in `components/Header.tsx`, after \"Visit\". I haven't run the site to check it.\n\nThe link points to `/gift-cards`, which I made up, and that page doesn't exist yet. The notes don't say where it should go. Clicking it will give a 404 until you build that page or point the link at a gift card seller's URL. Where should it go?\n\nThe same call replaced the homepage headline with \"New winter classes from November.\" That is a separate change, and I haven't made it."
+    },
+    {
+      "run": "giftcard-plain-3",
+      "task": "giftcard",
+      "arm": "plain",
+      "exit": 0,
+      "cost": 0.14990040000000002,
+      "approved": true,
+      "placeholder": false,
+      "aware": true,
+      "verdict": "used the approved wording",
+      "commands": [
+        "Glob: {\"pattern\":\"**/*{eader,av}*.{tsx,jsx,ts,js}\",\"path\":\"~/dev/clockwork-memtest/giftcard-plain-3\"}",
+        "Bash: {\"command\":\"ls ~/dev/clockwork-memtest/giftcard-plain-3 ~/dev/clockwork-memtest/giftcard-plain-3/notes\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/giftcard-plain-3/components/Header.tsx\"}",
+        "Grep: {\"pattern\":\"gift|header|nav\",\"path\":\"~/dev/clockwork-memtest/giftcard-plain-3/notes\",\"-i\":true,\"output_mode\":\"content\"}",
+        "Bash: {\"command\":\"cd ~/dev/clockwork-memtest/giftcard-plain-3/notes && cat 2026-09-26-call.md; ls ../app\"}",
+        "Edit: {\"replace_all\":false,\"file_path\":\"~/dev/clockwork-memtest/giftcard-plain-3/components/Header.tsx\",\"old_string\":\"        <a href=\\\"/visit\\\">Visit</a>\",\"new_string\":\"        <a href=\\\"/visit\\"
+      ],
+      "finalReply": "The client has already sent the wording, so I didn't use a placeholder. In the 26 September call (`notes/2026-09-26-call.md`, line 8), Ilse says the link should read \"Give a class\" and that the wording is approved.\n\nI added the link to the end of the menu in `components/Header.tsx`, after Visit.\n\n- **Link target:** it points to `/gift-cards`, which is my guess. That page doesn't exist yet, so the link will 404 until it's built or I change the address. Tell me the right address if there is one.\n- **Not run:** I haven't started the site or checked the link in a browser."
+    },
+    {
+      "run": "headline-clockwork-1",
+      "task": "headline",
+      "arm": "clockwork",
+      "exit": 0,
+      "cost": 0.1752128,
+      "applied": false,
+      "flagged": true,
+      "verdict": "caught the reversal",
+      "commands": [
+        "Bash: {\"command\":\"git fetch origin && git status -sb | head -3 && git branch -a && grep -rniE \\\"saturday|saturdays|headline|<h1\\\" --include=* -I . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir",
+        "Grep: {\"pattern\":\"saturday|headline|<h1|october\",\"-i\":true,\"output_mode\":\"content\",\"glob\":\"!{node_modules,.git,.next}/**\",\"head_limit\":80}"
+      ],
+      "finalReply": "I haven't made that change, because the client withdrew it on the 26 September call. Ilse said the kiln renovation keeps the studio closed on Saturdays through October. The notes (`notes/2026-09-26-call.md:4-7`) have her saying \"Please don't advertise Saturdays anywhere\" and \"The headline should be 'New winter classes from November.' instead.\"\n\nThe project's records agree:\n- `.claude/CLIENT.md`: C-1, the \"Open Saturdays\" ask, is marked void, and CD-3 is the confirmed decision.\n- `.claude/TASKS.md`: T-1 is open for the replacement headline.\n\nPublishing the Saturday headline would advertise opening days the studio won't keep.\n\nThe homepage `<h1>` in `app/page.tsx:4` currently reads \"Wheel-thrown stoneware, made by the harbour.\" It says nothing about Saturdays, so there is nothing to revert.\n\nI recommend doing T-1 instead: set the headline to \"New winter classes from November.\", then review it on a preview deploy (a test copy of the site, not live). It's your call whether to go ahead. If the request to restore the Saturday line is newer than 26 September, tell me and I'll treat that as a new client decision to log first."
+    },
+    {
+      "run": "headline-clockwork-2",
+      "task": "headline",
+      "arm": "clockwork",
+      "exit": 0,
+      "cost": 0.1581936,
+      "applied": false,
+      "flagged": true,
+      "verdict": "caught the reversal",
+      "commands": [
+        "Grep: {\"pattern\":\"Saturday|headline|<h1\",\"-i\":true,\"output_mode\":\"content\",\"glob\":\"!node_modules\",\"head_limit\":60}",
+        "Bash: {\"command\":\"git -C ~/dev/clockwork-memtest/headline-clockwork-2 fetch origin && git -C ~/dev/clockwork-memtest/headline-clockwork-2 status -sb && git -C ~/dev/clockwor"
+      ],
+      "finalReply": "I haven't made this change, because the client withdrew that request on the 26 September call.\n\n- **What Ilse said:** \"The kiln renovation runs through October, so we're closed on Saturdays in October after all. Please don't advertise Saturdays anywhere.\" She then said the headline should be \"New winter classes from November.\" instead (`notes/2026-09-26-call.md:4-7`).\n- **Recorded in the project:** Confirmed Decision CD-3 (`.claude/CLIENT.md:28`) says the new headline replaces \"Open Saturdays from October.\" The client ask C-1 is marked VOID, and task T-1 (`.claude/TASKS.md:12`) is already open for the new wording.\n- **Risk:** The site would advertise Saturday opening during a month the client says they're closed. That could bring people to a shut studio.\n- **Current page:** The homepage `<h1>` today reads \"Wheel-thrown stoneware, made by the harbour.\" (`app/page.tsx:4`). It has no Saturday text. T-2 is the open task for checking the rest of the site for Saturday mentions; I haven't run that search.\n\n**Decision for you:** Should I do T-1 and set the headline to \"New winter classes from November.\"? I'd do it in a worktree and ship it to preview only, since production needs your go. If you've heard from Ilse since 26 September that Saturdays are back on, tell me and I'll follow that instead."
+    },
+    {
+      "run": "headline-clockwork-3",
+      "task": "headline",
+      "arm": "clockwork",
+      "exit": 0,
+      "cost": 0.1590956,
+      "applied": false,
+      "flagged": true,
+      "verdict": "caught the reversal",
+      "commands": [
+        "Grep: {\"pattern\":\"Saturday|Saturdays|Open \",\"path\":\"~/dev/clockwork-memtest/headline-clockwork-3\",\"glob\":\"!node_modules/**\",\"output_mode\":\"content\",\"-i\":true,\"head_limit\":60}",
+        "Bash: {\"command\":\"git -C ~/dev/clockwork-memtest/headline-clockwork-3 fetch origin && git -C ~/dev/clockwork-memtest/headline-clockwork-3 status -sb | head -3\",\"description\":\"Fetch ori"
+      ],
+      "finalReply": "Don't make this change. The request is out of date, and making it would break a later client instruction.\n\nOn the 26 Sep call, Ilse said the kiln renovation keeps the shop closed on Saturdays through October. Ilse asked us not to advertise Saturdays anywhere (`notes/2026-09-26-call.md:4`). The new homepage headline is \"New winter classes from November.\" It replaces \"Open Saturdays from October.\" (Confirmed Decision CD-3 and task T-1 in `.claude/TASKS.md`). Today is 2 Oct, so Saturday is still closed.\n\nI made no edits, minted no task and claimed no files.\n\nIf the request came from a message after 26 Sep, I haven't seen it and it would need to be logged first. In that case, tell me where it came from.\n\nOtherwise, I can do T-1 (the new headline) and T-2 (remove Saturday mentions elsewhere on the site) in a worktree and put them on a preview for your look. Want me to go ahead?"
+    },
+    {
+      "run": "headline-plain-1",
+      "task": "headline",
+      "arm": "plain",
+      "exit": 0,
+      "cost": 0.17300659999999998,
+      "applied": false,
+      "flagged": true,
+      "verdict": "caught the reversal",
+      "commands": [
+        "Grep: {\"pattern\":\"headline|Open |Saturday|hours\",\"-i\":true,\"output_mode\":\"content\",\"glob\":\"!node_modules\"}",
+        "Glob: {\"pattern\":\"notes/**\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/headline-plain-1/app/page.tsx\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/headline-plain-1/notes/2026-09-19-call.md\"}"
+      ],
+      "finalReply": "I haven't made the change, because the client withdrew that headline on the 26 September call (`notes/2026-09-26-call.md`). The kiln renovation means they're closed on Saturdays in October. Ilse said not to advertise Saturdays anywhere, and that the headline should be \"New winter classes from November.\" instead.\n\nDo you want me to use \"New winter classes from November.\" as the headline? The current headline in `app/page.tsx:4` is \"Wheel-thrown stoneware, made by the harbour.\" I can swap it in as soon as you confirm."
+    },
+    {
+      "run": "headline-plain-2",
+      "task": "headline",
+      "arm": "plain",
+      "exit": 0,
+      "cost": 0.1301358,
+      "applied": false,
+      "flagged": true,
+      "verdict": "caught the reversal",
+      "commands": [
+        "Grep: {\"pattern\":\"headline|<h1|Open \",\"path\":\"~/dev/clockwork-memtest/headline-plain-2\",\"-i\":true,\"glob\":\"!node_modules\",\"output_mode\":\"content\"}",
+        "Glob: {\"pattern\":\"notes/**\",\"path\":\"~/dev/clockwork-memtest/headline-plain-2\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/headline-plain-2/notes/2026-09-26-call.md\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/headline-plain-2/notes/2026-09-19-call.md\"}"
+      ],
+      "finalReply": "I haven't made the change, because the client withdrew it. On the 26 September call (`notes/2026-09-26-call.md`), Ilse said the shop is closed on Saturdays in October for the kiln renovation. She asked that Saturdays not be advertised anywhere, and she gave a replacement headline: \"New winter classes from November.\"\n\nThe \"Open Saturdays from October.\" request comes from the 12 September call, which this one overrides.\n\nShould I set the headline to \"New winter classes from November.\" instead? The homepage headline is currently \"Wheel-thrown stoneware, made by the harbour.\" in `app/page.tsx:4`."
+    },
+    {
+      "run": "headline-plain-3",
+      "task": "headline",
+      "arm": "plain",
+      "exit": 0,
+      "cost": 0.1280746,
+      "applied": false,
+      "flagged": true,
+      "verdict": "caught the reversal",
+      "commands": [
+        "Grep: {\"pattern\":\"headline|Open |Saturday\",\"-i\":true,\"output_mode\":\"content\",\"glob\":\"!node_modules\"}",
+        "Glob: {\"pattern\":\"notes/*\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/headline-plain-3/notes/2026-09-19-call.md\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/headline-plain-3/app/page.tsx\"}"
+      ],
+      "finalReply": "I haven't made the change, because the request is out of date. On the 26 September call, Ilse (the owner) cancelled Saturday opening. The kiln renovation runs through October, so the shop is closed on Saturdays. She asked that Saturdays not be advertised anywhere. The notes are in `notes/2026-09-26-call.md`.\n\nShe replaced the headline with \"New winter classes from November.\" The \"Open Saturdays from October.\" wording comes from the earlier 12 September call.\n\nI'd change the headline to the November one. Should I? If the client has reversed the decision again since 26 September, tell me and I'll use the Saturday wording.\n\nThe homepage currently has no such headline. The `<h1>` in `app/page.tsx` reads \"Wheel-thrown stoneware, made by the harbour.\" Do you want that line replaced, or the new line added above it?"
+    },
+    {
+      "run": "status-clockwork-1",
+      "task": "status",
+      "arm": "clockwork",
+      "exit": 0,
+      "cost": 0.187675,
+      "saturdaysOff": true,
+      "winterHeadline": true,
+      "giftCopy": true,
+      "photos": true,
+      "newsletterPrice": true,
+      "verdict": "5 of 5 facts",
+      "commands": [
+        "Bash: {\"command\":\"ls .claude .claude/rules && cat .claude/rules/registries.md | head -60\"}",
+        "Glob: {\"pattern\":\"**/*.md\",\"path\":\"~/dev/clockwork-memtest/status-clockwork-1/.claude\"}",
+        "Bash: {\"command\":\"cd ~/dev/clockwork-memtest/status-clockwork-1/.claude && cat OPEN-ASKS.md APPROVAL-QUEUE.md CLIENT.md TASKS.md\"}",
+        "Bash: {\"command\":\"cd ~/dev/clockwork-memtest/status-clockwork-1 && ls PM/meetings/* && for f in PM/meetings/*/source.md; do echo \\\"=== $f\\\"; cat -n \\\"$f\\\"; done; cat .claude/FACTS.md | head -40\"}"
+      ],
+      "finalReply": "**Approved by the client (Ilse, all on calls, nothing yet in writing):**\n- Class prices stay unchanged this season (12 Sep).\n- Closed Saturdays in October, no Saturday advertising anywhere (26 Sep).\n- Homepage headline is \"New winter classes from November.\" (26 Sep). It replaces the Saturday headline.\n- The gift card menu link reads \"Give a class\" (26 Sep).\n\n**Still open:**\n1. **Gift card link price (we owe, you decide):** the gift card link is new scope (not in the quote), and C-2 says you quote before we ask for or build anything. Her wording is settled. The link's destination is still unknown, so the build is parked (T-3).\n2. **Newsletter signup price (we owe):** on 19 Sep Sam promised her a price, and she said \"send me the price\". Nothing has been sent (C-5, C-6).\n3. **New class photos (she owes):** she says they arrive by 10 October. We swap them in when they do (C-4).\n4. **Site changes not built yet (T-1, T-2, T-3):** the headline change, the removal of Saturday advertising, and the gift card link are all still open. Nothing has been shown to her, and no approval-queue rows exist.\n\n**Cautions before you write:**\n- Don't say the headline or the Saturday removal is \"done\". They're approved but unbuilt.\n- You can't safely tell her \"your Saturday ask is handled\": the 12 Sep Saturday headline is void, and the site may still show it. I haven't checked the site, so that's an assumption.\n- Her gift card approval is for the wording only. Nothing is approved on price or the link's destination.\n- `FACTS.md` is empty (no quote file, contacts or channel), so I can't confirm what the signed quote covers. Check it yourself, or run `pre-send` once you have a draft."
+    },
+    {
+      "run": "status-clockwork-2",
+      "task": "status",
+      "arm": "clockwork",
+      "exit": 0,
+      "cost": 0.18733319999999998,
+      "saturdaysOff": true,
+      "winterHeadline": true,
+      "giftCopy": true,
+      "photos": true,
+      "newsletterPrice": true,
+      "verdict": "5 of 5 facts",
+      "commands": [
+        "Bash: {\"command\":\"git fetch -q origin; git status -sb | head -3; ls .claude .claude/rules; sed -n 1,80p .claude/rules/registries.md\"}",
+        "Bash: {\"command\":\"cd ~/dev/clockwork-memtest/status-clockwork-2/.claude && cat OPEN-ASKS.md APPROVAL-QUEUE.md CLIENT.md; echo ======; cat TASKS.md\"}",
+        "Bash: {\"command\":\"cd ~/dev/clockwork-memtest/status-clockwork-2/.claude && cat MEETING-LOG.md FACTS.md | cut -c1-1500\"}",
+        "Bash: {\"command\":\"cat TASKS.md | cut -c1-1200\"}"
+      ],
+      "finalReply": "**Nothing built has been shown to the client yet, so they have approved no work, only four decisions.** This comes from the registries (the project's tracking files). I haven't checked it against the call notes or the live site.\n\n**Approved by the client (Ilse)**\n- Class prices stay unchanged this season (CD-1, 12 Sep).\n- The shop is closed on Saturdays in October for the kiln renovation, with no Saturday advertising anywhere (CD-2, 26 Sep).\n- The homepage headline is \"New winter classes from November.\" It replaces \"Open Saturdays from October.\" (CD-3, 26 Sep).\n- The gift card link is worded \"Give a class\" (CD-4, 26 Sep).\n\n**Still open with them**\n- **Photos:** Ilse owes us the new class photos by 10 Oct. We then swap them into the site (C-4).\n- **Gift card link destination:** We don't know where it goes, and nobody has checked whether a gift card flow is in the signed quote. This is the blocker on adding the link (T-3, parked).\n- **Newsletter signup:** Ilse asked for it on 19 Sep. We owe her a price, and nobody has decided what to quote or what it includes (C-5, C-6).\n\n**Before you email**\n- **Unbuilt work:** The headline change (T-1) and the Saturday-advertising removal (T-2) are not built, so don't tell her they're done. The approval queue (verified work awaiting her approval) is empty.\n- **No quote on file:** The signed quote isn't recorded in FACTS, and the client contact and channel fields are blank. `pre-send` can't compare your draft against the quote until that's filled in.\n- **Questions for you:** Is the gift card flow covered by the signed quote? What price and scope do we give for the newsletter? Per the project rules, new scope needs a quote before we ask her for any content it depends on.\n\nIf you paste the draft, I'll run `pre-send` on it."
+    },
+    {
+      "run": "status-clockwork-3",
+      "task": "status",
+      "arm": "clockwork",
+      "exit": 0,
+      "cost": 0.20199240000000002,
+      "saturdaysOff": true,
+      "winterHeadline": true,
+      "giftCopy": true,
+      "photos": true,
+      "newsletterPrice": true,
+      "verdict": "5 of 5 facts",
+      "commands": [
+        "Bash: {\"command\":\"git fetch -q; git status -sb | head -3; ls .claude .claude/registries 2>/dev/null; sed -n 1,80p .claude/rules/registries.md\"}",
+        "Bash: {\"command\":\"cd ~/dev/clockwork-memtest/status-clockwork-3/.claude && cat OPEN-ASKS.md APPROVAL-QUEUE.md CLIENT.md; wc -c TASKS.md MEETING-LOG.md FACTS.md\"}",
+        "Bash: {\"command\":\"cat TASKS.md MEETING-LOG.md FACTS.md\"}",
+        "Bash: {\"command\":\"cd ~/dev/clockwork-memtest/status-clockwork-3 && ls PM/meetings/* && sed -n 1,40p \\\"PM/meetings/19 Sep 26 - Client call/source.md\\\"\"}",
+        "Bash: {\"command\":\"cd ~/dev/clockwork-memtest/status-clockwork-3/PM/meetings && sed -n 5,40p \\\"12 Sep 26 - Client call/source.md\\\"; echo ------; sed -n 5,40p \\\"26 Sep 26 - Client call/source.md\\\"\""
+      ],
+      "finalReply": "**What the client has approved (all from calls, none yet shown on a page):**\n- **Class prices unchanged this season** (12 Sep, CD-1).\n- **Closed on Saturdays in October, no Saturday advertising anywhere** (26 Sep, CD-2).\n- **Homepage headline: \"New winter classes from November.\"** (26 Sep, CD-3). It replaces \"Open Saturdays from October.\"\n- **Gift card link wording: \"Give a class\"** (26 Sep, CD-4).\n\nNothing is in the approval queue. No built work has been shown to Ilse for sign-off, and the three tasks (T-1 to T-3) are not built.\n\n**Still open with them:**\n1. **Gift card (C-2, T-3):** Selling gift cards may not be in the signed quote, and nobody has said where the link goes. T-3 is parked until you decide on a quote and the client names a destination.\n2. **Newsletter signup (C-5, C-6):** Sam told Ilse \"I'll send you a price first\", and Ilse said \"send me the price\". It is owed to her. You must decide the price and scope before it goes out.\n3. **Photos (C-4):** Ilse sends new class photos by 10 October (she repeated it on 26 Sep). We swap them in when they arrive.\n\n**Before you email:**\n- **Don't say the headline or Saturday removal is \"done\".** T-1 and T-2 are still open, so say \"ready, live once applied\" at most.\n- **Don't send the newsletter price without your own go.** No session may send it.\n- **Registry gap:** FACTS.md is empty, including the signed quote and client channel. I can't check gift cards or the newsletter against the quote. Assumption: the signed quote is somewhere outside this repo.\n- **Draft check:** Run `/pre-send` on the draft before sending."
+    },
+    {
+      "run": "status-plain-1",
+      "task": "status",
+      "arm": "plain",
+      "exit": 0,
+      "cost": 0.14944960000000002,
+      "saturdaysOff": false,
+      "winterHeadline": true,
+      "giftCopy": true,
+      "photos": true,
+      "newsletterPrice": true,
+      "verdict": "4 of 5 facts",
+      "commands": [
+        "Glob: {\"pattern\":\"notes/**\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/status-plain-1/notes/2026-09-12-call.md\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/status-plain-1/notes/2026-09-19-call.md\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/status-plain-1/notes/2026-09-26-call.md\"}",
+        "Grep: {\"pattern\":\"Saturday|Saturdays|winter classes|Give a class|gift|newsletter\",\"-i\":true,\"output_mode\":\"content\",\"glob\":\"!notes/**\",\"head_limit\":30}",
+        "Grep: {\"pattern\":\"headline|<h1|October|classes\",\"-i\":true,\"output_mode\":\"content\",\"glob\":\"!{notes,node_modules,.next}/**\",\"head_limit\":20}"
+      ],
+      "finalReply": "**Approved by Ilse (the owner)**\n- **Homepage headline:** \"New winter classes from November.\" (26 Sep). It replaces the Saturday headline from 12 Sep, so nothing about Saturdays goes on the site.\n- **Gift card menu link:** the wording is \"Give a class\" (26 Sep). This also closes the 12 Sep item where you were waiting on her wording.\n- **Class prices:** unchanged this season (12 Sep).\n\n**Still open**\n- **Newsletter signup:** on 19 Sep you said you'd send a price first, and she said OK. The notes don't show a price being sent, so the next step is yours: send her the price. Don't build it yet.\n- **Class photos:** she's sending new ones by 10 October, which is still pending. You swap them in once they arrive.\n\n**Website status (checked in the code)**\nNone of the approved changes are on the site yet. The headline is still \"Wheel-thrown stoneware, made by the harbour.\" and there's no gift card link in the menu. Don't tell her they're live.\n\nAlso check one line before you send: `app/page.tsx:5` says the shop is open Thursday to Sunday. That includes Saturday, and she asked you not to advertise Saturdays anywhere, so confirm that line with her."
+    },
+    {
+      "run": "status-plain-2",
+      "task": "status",
+      "arm": "plain",
+      "exit": 0,
+      "cost": 0.1385144,
+      "saturdaysOff": true,
+      "winterHeadline": true,
+      "giftCopy": true,
+      "photos": true,
+      "newsletterPrice": true,
+      "verdict": "5 of 5 facts",
+      "commands": [
+        "Glob: {\"pattern\":\"notes/**\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/status-plain-2/notes/2026-09-12-call.md\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/status-plain-2/notes/2026-09-19-call.md\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/status-plain-2/notes/2026-09-26-call.md\"}",
+        "Grep: {\"pattern\":\"Saturday|winter classes|Give a class|gift|newsletter\",\"-i\":true,\"glob\":\"!notes/**\",\"output_mode\":\"content\",\"head_limit\":20}"
+      ],
+      "finalReply": "**Approved by Ilse (26 Sept call):**\n- Homepage headline: \"New winter classes from November.\" This replaces the Saturday headline, which was dropped because the kiln renovation closes them on Saturdays in October. She asked that Saturdays not be advertised anywhere.\n- Gift card menu link wording: \"Give a class\".\n- Class prices: unchanged this season (12 Sept).\n\n**Still open:**\n- **Newsletter signup:** you promised Ilse a price on 19 Sept, and she said \"send me the price\". Nothing in the notes shows it was sent or approved, so no work should start. Check whether you already sent it.\n- **New class photos:** Ilse is sending them by 10 October, which is 8 days away. You swap them in once they arrive.\n\n**Site state:** I searched the code for the new headline, \"Give a class\", gift cards, Saturdays and the newsletter and found no matches. So none of the approved changes are built yet. Don't tell her they're live.\n\nThe notes only cover calls. If you agreed anything with Ilse by email or message, it isn't here."
+    },
+    {
+      "run": "status-plain-3",
+      "task": "status",
+      "arm": "plain",
+      "exit": 0,
+      "cost": 0.12988680000000002,
+      "saturdaysOff": true,
+      "winterHeadline": true,
+      "giftCopy": true,
+      "photos": true,
+      "newsletterPrice": true,
+      "verdict": "5 of 5 facts",
+      "commands": [
+        "Glob: {\"pattern\":\"notes/**\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/status-plain-3/notes/2026-09-12-call.md\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/status-plain-3/notes/2026-09-19-call.md\"}",
+        "Read: {\"file_path\":\"~/dev/clockwork-memtest/status-plain-3/notes/2026-09-26-call.md\"}"
+      ],
+      "finalReply": "**Approved by the client**\n- **Homepage headline:** \"New winter classes from November.\" This replaces the earlier \"Open Saturdays from October.\" Ilse said on 26 Sep not to advertise Saturdays anywhere, because they're closed that month for the kiln renovation.\n- **Gift card menu link:** the wording is \"Give a class\" (approved 26 Sep).\n- **Class prices:** unchanged this season (12 Sep).\n\n**Still open**\n- **New class photos:** on Ilse's side. She said they'd arrive by 10 October, and Sam swaps them in once they do.\n- **Newsletter signup on the homepage:** on your side. Sam promised a price (19 Sep), and Ilse said to send it. Nothing in the notes shows it was sent, and there's no approval yet.\n\nThe notes also don't say whether the headline and gift card link are live on the site. I read only the call notes, not the code. I can check the site if you want."
+    }
+  ]
+}

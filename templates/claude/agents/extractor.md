@@ -21,6 +21,7 @@ Read every line you are given. For each item return the fields in the schema you
 - **summary**: one plain line in your words. **owner**, **due**: only as said; empty if not said. **where**: timestamp, line, page or slide.
 - **new_scope**: true when it is work the signed quote does not cover. It becomes a commercial question, never a task.
 - **outward**: true when it asks for an action toward someone outside (send, publish, delete, share).
+- **deploy_class** (tasks only): `preview` for visual or placement work, `ship` for backend or content. Leave it out when unsure; it becomes `preview`.
 - **metric**: when a number or measure is "agreed", fill `claim` and set `producible` to `unchecked` unless you checked the data; say so in `evidence`.
 - **feedback_class** (feedback docs only): `real_defect` · `false_positive` · `overclaim` · `decision_given` · `scope_change` · `not_checked`. Say `not_checked` unless you compared it with the code or the served page.
 - Record a client contradicting themselves as a `question_for_user` with both quotes' places in `where`.

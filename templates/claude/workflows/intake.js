@@ -35,7 +35,7 @@ const ITEM = {
     summary: STR, quote: STR, speaker: STR, where: STR, owner: STR, due: STR,
     confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
     new_scope: { type: 'boolean' }, outward: { type: 'boolean' },
-    closes_when: STR, fact_key: STR, value: STR, ref: STR,
+    closes_when: STR, deploy_class: { type: 'string', enum: ['preview', 'ship'] }, fact_key: STR, value: STR, ref: STR,
     metric: { type: 'object', required: ['claim', 'producible', 'evidence'], properties: { claim: STR, producible: { type: 'string', enum: ['yes', 'no', 'unchecked'] }, evidence: STR }, additionalProperties: false },
     conflicts: { type: 'array', items: { type: 'object', required: ['with', 'detail'], properties: { with: STR, detail: STR }, additionalProperties: false } },
     feedback_class: { type: 'string', enum: ['real_defect', 'false_positive', 'overclaim', 'decision_given', 'scope_change', 'not_checked'] },

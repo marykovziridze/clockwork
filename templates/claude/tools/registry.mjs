@@ -6,7 +6,7 @@
 // Usage (run from anywhere inside the project, including a worktree):
 //   node "$CLOCKWORK_TOOLS/registry.mjs" mint T --title "…" [--cells "a|b"] [--status "⬜ OPEN"]
 //        [--section "## Open"] [--file TASKS.md] [--opened today|YYYY-MM-DD|none] [--claim-branch <b>]
-//   … next T · append T-12 --text "…" · status T-12 "✅ VERIFIED …" · backup --reason <slug>
+//   … next T · append T-12 --text "…" (or append T-12 "…") · status T-12 "✅ VERIFIED …" · backup --reason <slug>
 //   … rotate TASKS.md [--dry-run] [--keep-recent 20] · check
 //   … show T-12 · list [T] [--status BUILT]            read-only, always the main copy (a worktree copy is stale)
 //   … line FACTS.md --section "## Facts" --text "…" [--replace "<exact old line>"]   files without IDs
@@ -457,8 +457,10 @@ function editStatus(ctx, a, change) {
   });
 }
 function cmdAppend(ctx, a) {
-  if (!a.text || !a.text.trim()) refuse('usage: append <ID> --text "…"');
-  return editStatus(ctx, a, (s) => `${s} · ${cellText(a.text)}`);
+  // `append T-3 "…"` without --text: sessions write it that way often enough that refusing only costs a retry.
+  const text = a.text ?? a._.slice(2).join(' ');
+  if (!text || !text.trim()) refuse('usage: append <ID> --text "…"');
+  return editStatus(ctx, a, (s) => `${s} · ${cellText(text)}`);
 }
 // ✅ VERIFIED evidence must exist, not only look right: a report file on disk (under the project root or registryDir),
 // a commit git resolves, or a URL (not checkable offline). Outside a git repository a sha is taken as written.

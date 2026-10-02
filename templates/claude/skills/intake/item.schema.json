@@ -148,6 +148,14 @@
           "type": "string",
           "description": "Tasks: the measurable end state"
         },
+        "deploy_class": {
+          "type": "string",
+          "enum": [
+            "preview",
+            "ship"
+          ],
+          "description": "Tasks: preview (visual or placement; waits for the user's look) or ship (backend, content). Left out: preview"
+        },
         "fact_key": {
           "type": "string",
           "description": "Facts and deadlines: the FACTS line or obligation name it changes"

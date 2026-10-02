@@ -127,7 +127,14 @@ export function chunkLines(text, max = 8000) {
   return out;
 }
 
-const fill = (tpl, v) => String(tpl || '').replace(/\{(\w+)\}/g, (_, k) => esc(v[k] ?? ''));
+const fill = (tpl, v) => String(tpl || '').replace(/\{(\w+)\}/g, (_, k) => (k === 'due_note' ? v[k] ?? '' : esc(v[k] ?? '')));
+// Older project-owned routing.md files still carry "tbd" as a task's deploy class (registry.mjs wants preview or ship)
+// and ", due {due}" with no date: both are mended here, so a project need not rewrite its routing table.
+const cellsFor = (r, v) => {
+  let c = fill(r.cells, v);
+  if (r.prefix === 'T') c = c.replace(/(^|(?<!\\)\|)tbd(?=\||$)/, (_, sep) => sep + v.deploy_class);
+  return c.replace(/,? due (?=\||$)/g, '');
+};
 export function planItems(extraction, { body, header, sourceRel, date, routes, schema, sectionExists }) {
   const paraphrase = /paraphrase, not transcript/i.test(header) || /speakers merged/i.test(header);
   return extraction.items.map((raw, i) => {
@@ -146,14 +153,15 @@ export function planItems(extraction, { body, header, sourceRel, date, routes, s
     if (r.file === 'reply') return { ...base, route: key, file: 'reply', state: 'reply', reason: 'question for the user', attribution };
     if (!sectionExists(r.file, r.section)) return { ...base, route: key, state: 'unroutable', reason: `${r.file} has no "${r.section}" section` };
     const v = { ...it, date, source: `${sourceRel} @ ${it.where}${attribution ? ' · owner from a paraphrase, unconfirmed' : ''}`, closes_when: it.closes_when || 'to agree with the user',
-      due_note: it.due ? `${it.owner ? ' · ' : ''}due ${it.due}` : '' }; // "due YYYY-MM-DD" is what the doctor ages
+      due_note: it.due ? `${it.owner ? ' · ' : ''}due ${esc(it.due)}` : '', // "due YYYY-MM-DD" is what the doctor ages; escaped here, kept unpadded by fill
+      deploy_class: it.deploy_class === 'ship' ? 'ship' : 'preview' }; // preview waits for the user's look: the safe default
     const out = { ...base, route: key, file: r.file, section: r.section, attribution };
     if (!r.prefix) return { ...out, state: 'to-edit', fact_key: it.fact_key || '', value: it.value || '' };
-    const title = (it.outward ? 'User approves: ' : '') + fill(r.title, v);
-    const main = { ...out, state: 'to-mint', prefix: r.prefix, title, cells: fill(r.cells, v), status: r.status || '⬜ OPEN', ref: it.ref || '' };
+    const title = it.outward ? `User approves: ${fill(r.title, v).replace(/^We owe:\s*/, '')}` : fill(r.title, v);
+    const main = { ...out, state: 'to-mint', prefix: r.prefix, title, cells: cellsFor(r, v), status: r.status || '⬜ OPEN', ref: it.ref || '' };
     // A second minting row for the same type (design_rule: the CD row, then the task that rewrites the design table)
     const extra = (r.also || []).filter((x) => sectionExists(x.file, x.section)).map((x, k) => ({ ...out, n: `${it.n}.${k + 2}`, file: x.file, section: x.section,
-      state: 'to-mint', prefix: x.prefix, title: fill(x.title, v), cells: fill(x.cells, v), status: x.status || '⬜ OPEN' }));
+      state: 'to-mint', prefix: x.prefix, title: fill(x.title, v), cells: cellsFor(x, v), status: x.status || '⬜ OPEN' }));
     return [main, ...extra];
   }).flat();
 }
