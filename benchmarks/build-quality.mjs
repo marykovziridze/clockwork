@@ -11,9 +11,14 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync, execFileSync } from 'node:child_process';
 
-const ROOT = path.join(os.homedir(), 'dev', 'clockwork-quality');
+const ROOT = process.env.BENCH_ROOT || path.join(os.homedir(), 'dev', 'clockwork-quality'); // BENCH_ROOT: work elsewhere, e.g. after a folder move
 const DEPS = path.join(ROOT, '_deps');
 const MODEL = 'claude-sonnet-5-5';
+// The building session can run on another model or effort; the blind reviewer always stays on MODEL.
+//   BENCH_MODEL=claude-opus-5-5 BENCH_EFFORT=high BENCH_TAG=opus-high ONLY=classes-clockwork node … run <outDir> 3
+const WORKER_MODEL = process.env.BENCH_MODEL || MODEL;
+const EFFORT = process.env.BENCH_EFFORT ? ['--effort', process.env.BENCH_EFFORT] : [];
+const TAG = process.env.BENCH_TAG ? `-${process.env.BENCH_TAG}` : '';
 const TOOLS = ['Agent', 'Read', 'Write', 'Edit', 'Glob', 'Grep', 'Bash(node *)', 'Bash(git *)', 'Bash(ls *)', 'Bash(cat *)', 'Bash(grep *)', 'Bash(mkdir *)', 'Bash(npm run *)', 'Bash(npx next *)', 'Bash(npx tsc *)'];
 const NO_MCP = ['--strict-mcp-config', '--disallowedTools', 'mcp__claude_ai_Gmail', 'mcp__claude_ai_Google_Drive', 'mcp__claude_ai_Google_Calendar', 'mcp__claude_ai_Claude_Docs'];
 const ARMS = ['bare', 'rules', 'clockwork'];
@@ -133,7 +138,7 @@ function copyBase(arm, dir) {
 function claude(dir, prompt, logFile, extra = []) {
   return new Promise((resolve) => {
     const out = fs.openSync(logFile, 'w');
-    const p = spawn('claude', ['-p', prompt, '--model', MODEL, '--output-format', 'stream-json', '--verbose', '--max-turns', '80', ...NO_MCP, '--allowedTools', ...TOOLS, ...extra], { cwd: dir, env: cleanEnv(), stdio: ['ignore', out, 'ignore'] });
+    const p = spawn('claude', ['-p', prompt, '--model', WORKER_MODEL, ...EFFORT, '--output-format', 'stream-json', '--verbose', '--max-turns', '80', ...NO_MCP, '--allowedTools', ...TOOLS, ...extra], { cwd: dir, env: cleanEnv(), stdio: ['ignore', out, 'ignore'] });
     p.on('close', (code) => { fs.closeSync(out); resolve(code); });
   });
 }
@@ -245,13 +250,19 @@ if (cmd === 'run') {
   const lanes = []; for (const task of Object.keys(TASKS)) for (const arm of ARMS) if (!only || only.includes(`${task}-${arm}`)) lanes.push({ task, arm });
   await Promise.all(lanes.map(async ({ task, arm }) => {
     for (let n = 1; n <= N; n++) {
-      const name = `${task}-${arm}-${n}`, dir = path.join(ROOT, name), log = path.join(OUT, `${name}.jsonl`);
+      const name = `${task}-${arm}${TAG}-${n}`, dir = path.join(ROOT, name), log = path.join(OUT, `${name}.jsonl`);
+      if (fs.existsSync(path.join(OUT, `${name}.json`))) continue; // graded in an earlier launch: re-running resumes
       const baseSha = copyBase(arm, dir);
       const code = await claude(dir, TASKS[task], log);
       const r = readLog(log), tree = resultTree(dir, baseSha), diff = appDiff(tree, baseSha);
+      // an account usage limit ends the lane without a result, so the next launch runs it again
+      const limited = (t) => /hit your .{0,40}limit/i.test(t || '');
+      if (limited(r.final)) { console.log(`${name}: stopped, usage limit: ${r.final.slice(0, 160)}`); return; }
       fs.writeFileSync(path.join(OUT, `${name}.diff`), diff);
-      const c = checks(task, tree, diff), b = build(tree), j = await judge(task, diff, path.join(OUT, `${name}.judge.json`));
-      const res = { name, task, arm, exit: code, cost: r.cost, turns: r.turns, tools: r.tools, resultIn: path.relative(ROOT, tree), build: b.ok, buildTail: b.ok ? '' : b.tail, checks: c, judge: j, final: r.final };
+      const judgeFile = path.join(OUT, `${name}.judge.json`);
+      const c = checks(task, tree, diff), b = build(tree), j = await judge(task, diff, judgeFile);
+      if (j.error && limited(fs.readFileSync(judgeFile, 'utf8'))) { console.log(`${name}: stopped, usage limit at the reviewer`); return; }
+      const res = { name, task, arm, model: WORKER_MODEL, effort: process.env.BENCH_EFFORT || 'default', exit: code, cost: r.cost, turns: r.turns, tools: r.tools, resultIn: path.relative(ROOT, tree), build: b.ok, buildTail: b.ok ? '' : b.tail, checks: c, judge: j, final: r.final };
       fs.writeFileSync(path.join(OUT, `${name}.json`), JSON.stringify(res, null, 2));
       // a run's project, its origin and any worktree it made are gone once graded: builds are about 150 MB each
       if (!process.env.KEEP) for (const e of fs.readdirSync(ROOT)) if (e === name || e.startsWith(`${name}.`) || e.startsWith(`${name}-`)) fs.rmSync(path.join(ROOT, e), { recursive: true, force: true });

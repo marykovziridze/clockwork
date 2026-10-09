@@ -9,7 +9,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawn, execFileSync } from 'node:child_process';
 
-const ROOT = path.join(os.homedir(), 'dev', 'clockwork-memtest');
+// BENCH_ROOT keeps a variant's bases apart; BENCH_SUBAGENT_MODEL puts the intake's extractor and checker on another
+// model (e.g. haiku); BENCH_ARMS limits `run` to some arms; BENCH_PATCH names a JSON list of {file, find, replace}
+// edits applied to the installed kit before intake, to test one rule change without touching the kit's templates.
+//   BENCH_ROOT=~/dev/clockwork-memtest-haiku BENCH_SUBAGENT_MODEL=haiku node … setup <kitDir> <outDir>
+const ROOT = process.env.BENCH_ROOT || path.join(os.homedir(), 'dev', 'clockwork-memtest');
+const SUBAGENT_MODEL = process.env.BENCH_SUBAGENT_MODEL;
+const ARMS = process.env.BENCH_ARMS ? process.env.BENCH_ARMS.split(',') : ['plain', 'clockwork'];
 const MODEL = 'claude-sonnet-5-5';
 const TOOLS = ['Agent', 'Read', 'Write', 'Edit', 'Glob', 'Grep', 'Bash(node *)', 'Bash(git *)', 'Bash(ls *)', 'Bash(cat *)', 'Bash(grep *)', 'Bash(mkdir *)', 'Bash(vercel *)'];
 const NO_MCP = ['--strict-mcp-config', '--disallowedTools', 'mcp__claude_ai_Gmail', 'mcp__claude_ai_Google_Drive', 'mcp__claude_ai_Google_Calendar', 'mcp__claude_ai_Claude_Docs'];
@@ -91,6 +97,15 @@ function makeBase(dir, withKit, kit) {
   git(dir, 'commit', '-q', '-m', 'Harbor Ceramics site and call notes');
   if (withKit) {
     execFileSync(process.execPath, [path.join(kit, 'install.mjs'), dir, '--stack', 'nextjs', '--project', 'Harbor Ceramics', '--apply'], { stdio: 'ignore' });
+    if (process.env.BENCH_PATCH) for (const { file, find, replace } of JSON.parse(fs.readFileSync(process.env.BENCH_PATCH, 'utf8'))) {
+      const f = path.join(dir, file), body = fs.readFileSync(f, 'utf8');
+      if (!body.includes(find)) throw new Error(`BENCH_PATCH: text not found in ${file}: ${find.slice(0, 60)}`);
+      fs.writeFileSync(f, body.replace(find, replace));
+    }
+    if (SUBAGENT_MODEL) for (const a of ['extractor', 'checker']) {
+      const f = path.join(dir, '.claude/agents', `${a}.md`);
+      fs.writeFileSync(f, fs.readFileSync(f, 'utf8').replace(/^model: .*$/m, `model: ${SUBAGENT_MODEL}`));
+    }
     git(dir, 'add', '--', 'AGENTS.md', 'CLAUDE.md', '.claude', '.worktreeinclude', '.gitignore');
     git(dir, 'commit', '-q', '-m', 'Install Clockwork');
   }
@@ -145,7 +160,7 @@ if (cmd === 'resume') { // answer the intake session as the user would, e.g. to 
 if (cmd === 'run') {
   const OUT = a1, N = Number(a2 || 3); fs.mkdirSync(OUT, { recursive: true });
   const lanes = [];
-  for (const task of Object.keys(TASKS)) for (const arm of ['plain', 'clockwork']) lanes.push({ task, arm });
+  for (const task of Object.keys(TASKS)) for (const arm of ARMS) lanes.push({ task, arm });
   await Promise.all(lanes.map(async ({ task, arm }) => {
     for (let n = 1; n <= N; n++) {
       const name = `${task}-${arm}-${n}`, dir = path.join(ROOT, name);
@@ -153,7 +168,7 @@ if (cmd === 'run') {
       const log = path.join(OUT, `${name}.jsonl`);
       const code = await claude(dir, TASKS[task], log);
       const r = readLog(log), g = grade(task, dir, r.final);
-      fs.writeFileSync(path.join(OUT, `${name}.json`), JSON.stringify({ name, task, arm, exit: code, cost: r.cost, ...g, final: r.final, cmds: r.cmds }, null, 2));
+      fs.writeFileSync(path.join(OUT, `${name}.json`), JSON.stringify({ name, task, arm, subagentModel: SUBAGENT_MODEL || 'kit default', exit: code, cost: r.cost, ...g, final: r.final, cmds: r.cmds }, null, 2));
       console.log(`${name}: ${g.verdict} [$${(r.cost || 0).toFixed(2)}]`);
     }
   }));

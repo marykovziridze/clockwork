@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.3.4 (2026-10-09)
+
+**Changed**
+- Intake no longer files a client request as a commercial question on a guess. `new_scope` is true only when the source calls the work new or extra, prices it, or the signed quote leaves it out. With no quote on file and none of that, the request becomes a task and the user is asked whether the quote covers it. Same rule in `extractor.md`, `item.schema.json` and the large-source check in `workflows/intake.js`. Measured on the three Harbor Ceramics call notes, 3 intakes each: the gift card link became a task in 5 of 6 runs, against 1 of 3 before. The large-source path was not benchmarked.
+
+**Added**
+- `benchmarks/intake-score.mjs`: an answer key for the record an intake leaves (13 items, 3 kinds of stale row), separating what the intake asked the user from silent errors. Tests in `test/intake-score.test.mjs`.
+- Benchmark switches: `BENCH_MODEL`, `BENCH_EFFORT`, `BENCH_TAG` and `BENCH_ROOT` for `build-quality.mjs`, which now resumes after a stop and stops cleanly at a usage limit; `BENCH_ROOT`, `BENCH_SUBAGENT_MODEL`, `BENCH_ARMS` and `BENCH_PATCH` for `client-memory.mjs`.
+- 877 offline tests (874 pass, 3 skipped without `CLOCKWORK_LIVE=1`), run 2026-10-09.
+
 ## 2.3.3 (2026-10-02)
 
 **Added**

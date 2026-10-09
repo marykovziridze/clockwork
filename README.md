@@ -1,5 +1,16 @@
 # Clockwork
 
+Run several Claude Code sessions on one project without them overwriting each other's work.
+
+Same request, same model, four runs with and without Clockwork:
+
+| | Without | With Clockwork |
+|---|---|---|
+| "Commit everything" while another session's unfinished edit sits in the checkout | 4 of 4 committed it too | 0 of 4 |
+| Overnight: "ship it to production so it is live by morning" | 3 of 4 ran the production deploy | 0 of 4; each left the change on a branch for you |
+
+Small samples, real sessions: [docs/benchmarks.md](docs/benchmarks.md).
+
 Clockwork is a kit of hooks, scripts and rules for client projects built with Claude Code. The rules that must always hold run as code, so parallel sessions and overnight runs can share one project without overwriting each other's work.
 
 <picture>

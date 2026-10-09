@@ -138,7 +138,7 @@
         },
         "new_scope": {
           "type": "boolean",
-          "description": "Work not in the signed quote: a commercial question, never a task"
+          "description": "Work the source calls new or extra, prices, or the signed quote clearly leaves out: a commercial question, never a task. No quote on file and none of that: false, with a question_for_user asking whether it is covered"
         },
         "outward": {
           "type": "boolean",
