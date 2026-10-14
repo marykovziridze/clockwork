@@ -54,6 +54,13 @@ node ~/dev/clockwork/install.mjs ~/dev/my-site --stack nextjs --apply  # writes 
 
 An existing project comes in through `/clockwork:onboard` (plugin) or `/clockwork-onboard` (clone). Upgrades, flags and what lands where: [docs/install.md](docs/install.md).
 
+## What it runs on your machine
+
+- The plugin adds one skill, `/clockwork:onboard`, which only you can start. It runs the kit's Node scripts from the plugin folder: on a staging copy first, then on your project once you say "apply it".
+- In the project it writes `AGENTS.md`, `CLAUDE.md`, the registries, `.claude/` (hooks, tools, rules, skills, agents) and lines in `.gitignore` and `.worktreeinclude`. It adds hook entries to the project's `.claude/settings.json` (and `.codex/hooks.json` with `--codex`), which change what Claude Code runs before commands and edits in that project only.
+- The hooks run `git` and `claude agents` locally. The one network call is `git fetch origin` at session start, to the project's own remote. Nothing is sent anywhere else: no telemetry, no other servers.
+- `cleanup.mjs` deletes finished worktrees only when you run it with `--apply`.
+
 ## Other agents
 
 The rules live in `AGENTS.md`, which Codex, Cursor, GitHub Copilot and other agents read, and `registry.mjs` is plain Node. Claude Code and Codex enforce them: `install.mjs --codex` wires the same hooks into Codex, where every question becomes a refusal because a Codex hook cannot ask. The Codex wiring is tested with recorded inputs only, not in a real Codex session. Other agents get the rules as text, with nothing enforcing them.
