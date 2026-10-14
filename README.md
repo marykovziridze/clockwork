@@ -38,10 +38,10 @@ Each step in detail: [docs/how-it-works.md](docs/how-it-works.md).
 
 Needs Claude Code, git and Node.js. Overnight runs need macOS.
 
-As a Claude Code plugin, then run `/clockwork:onboard` in the project:
+As a Claude Code plugin, then run `/clockwork-sessions:onboard` in the project:
 
 ```sh
-claude plugin install clockwork --marketplace https://github.com/marykovziridze/clockwork
+claude plugin install clockwork-sessions --marketplace https://github.com/marykovziridze/clockwork
 ```
 
 Or from a clone:
@@ -52,14 +52,11 @@ node ~/dev/clockwork/install.mjs ~/dev/my-site --stack nextjs          # prints 
 node ~/dev/clockwork/install.mjs ~/dev/my-site --stack nextjs --apply  # writes it
 ```
 
-An existing project comes in through `/clockwork:onboard` (plugin) or `/clockwork-onboard` (clone). Upgrades, flags and what lands where: [docs/install.md](docs/install.md).
+An existing project comes in through `/clockwork-sessions:onboard` (plugin) or `/clockwork-onboard` (clone). Upgrades, flags and what lands where: [docs/install.md](docs/install.md).
 
 ## What it runs on your machine
 
-- The plugin adds one skill, `/clockwork:onboard`, which only you can start. It runs the kit's Node scripts from the plugin folder: on a staging copy first, then on your project once you say "apply it".
-- In the project it writes `AGENTS.md`, `CLAUDE.md`, the registries, `.claude/` (hooks, tools, rules, skills, agents) and lines in `.gitignore` and `.worktreeinclude`. It adds hook entries to the project's `.claude/settings.json` (and `.codex/hooks.json` with `--codex`), which change what Claude Code runs before commands and edits in that project only.
-- The hooks run `git` and `claude agents` locally. The one network call is `git fetch origin` at session start, to the project's own remote. Nothing is sent anywhere else: no telemetry, no other servers.
-- `cleanup.mjs` deletes finished worktrees only when you run it with `--apply`.
+`/clockwork-sessions:onboard` runs only when you start it, and writes the kit and its hook entries into that project. The only network call is `git fetch origin`; no telemetry. Details: [docs/how-it-works.md](docs/how-it-works.md#what-it-runs-on-your-machine).
 
 ## Other agents
 

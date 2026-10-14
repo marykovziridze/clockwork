@@ -3,7 +3,8 @@
 ## 2.5.0 (2026-10-14)
 
 **Added**
-- Clockwork installs as a Claude Code plugin: `claude plugin install clockwork --marketplace https://github.com/marykovziridze/clockwork`, then `/clockwork:onboard` in the project. The repository is its own marketplace (`.claude-plugin/marketplace.json`). The plugin carries one skill, the onboarding skill with the kit at `${CLAUDE_PLUGIN_ROOT}`. It adds no hooks, so a plugin install changes no project until it is onboarded. `plugin.mjs` writes `plugin.json` and `skills/onboard/SKILL.md` from `onboard/SKILL.md` and `VERSION`, and `--check` fails when they drift. `claude plugin validate --strict` passes. Installed into an isolated config folder, the installed copy ran `onboard.mjs discover` and the installer's dry run. `/clockwork:onboard` has not yet run end to end from the plugin.
+- The plugin is named `clockwork-sessions`, because the Claude directory already lists a connector called "clockwork". It carries a listing icon (`.claude-plugin/icon.png`, the dial from the README figure).
+- Clockwork installs as a Claude Code plugin: `claude plugin install clockwork-sessions --marketplace https://github.com/marykovziridze/clockwork`, then `/clockwork-sessions:onboard` in the project. The repository is its own marketplace (`.claude-plugin/marketplace.json`). The plugin carries one skill, the onboarding skill with the kit at `${CLAUDE_PLUGIN_ROOT}`. It adds no hooks, so a plugin install changes no project until it is onboarded. `plugin.mjs` writes `plugin.json` and `skills/onboard/SKILL.md` from `onboard/SKILL.md` and `VERSION`, and `--check` fails when they drift. `claude plugin validate --strict` passes. Installed into an isolated config folder, the installed copy ran `onboard.mjs discover` and the installer's dry run. `/clockwork-sessions:onboard` has not yet run end to end from the plugin.
 - 901 offline tests (898 pass, 3 skipped without `CLOCKWORK_LIVE=1`), run 2026-10-14.
 
 ## 2.4.0 (2026-10-14)

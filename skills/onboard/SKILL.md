@@ -1,6 +1,6 @@
 ---
 name: onboard
-description: Bring any existing project (Clockwork v1, other documentation, none, or already on 2.0: sweep only) under Clockwork 2.0 without losing anything. Works on a staging copy, writes ONBOARDING-PLAN.md, checks itself, then stops for the user. Only the user starts it, with /clockwork:onboard.
+description: Bring any existing project (Clockwork v1, other documentation, none, or already on 2.0: sweep only) under Clockwork 2.0 without losing anything. Works on a staging copy, writes ONBOARDING-PLAN.md, checks itself, then stops for the user. Only the user starts it, with /clockwork-sessions:onboard.
 argument-hint: "[project folder] [--only <subfolder>]"
 disable-model-invocation: true
 ---

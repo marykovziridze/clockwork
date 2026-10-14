@@ -40,6 +40,13 @@ The `prompt-intake` hook spots a pasted transcript or email. The `intake` skill 
 
 Skills, agents and workflows remain Claude Code features. In other agents (Cursor, Copilot, Gemini CLI) nothing enforces the rules.
 
+## What it runs on your machine
+
+- The plugin adds one skill, `/clockwork-sessions:onboard`, which only you can start. It runs the kit's Node scripts from the plugin folder: on a staging copy first, then on your project once you say "apply it".
+- In the project it writes `AGENTS.md`, `CLAUDE.md`, the registries, `.claude/` (hooks, tools, rules, skills, agents) and lines in `.gitignore` and `.worktreeinclude`. It adds hook entries to the project's `.claude/settings.json` (and `.codex/hooks.json` with `--codex`), which change what Claude Code runs before commands and edits in that project only.
+- The hooks run `git` and `claude agents` locally. The one network call is `git fetch origin` at session start, to the project's own remote. Nothing is sent anywhere else: no telemetry, no other servers.
+- `cleanup.mjs` deletes finished worktrees only when you run it with `--apply`.
+
 ## Why each part exists
 
 Every mechanism above was added after something went wrong in a real project. The reasons and the decisions behind them: [WHY.md](../WHY.md).

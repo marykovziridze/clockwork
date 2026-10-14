@@ -4,9 +4,9 @@
   "description": "Clockwork: hooks, a task registry and rules for running several Claude Code sessions on one project.",
   "plugins": [
     {
-      "name": "clockwork",
+      "name": "clockwork-sessions",
       "source": "./",
-      "description": "Run several Claude Code sessions on one project without them overwriting each other's work. /clockwork:onboard installs it into a project."
+      "description": "Run several Claude Code sessions on one project without them overwriting each other's work. /clockwork-sessions:onboard installs it into a project."
     }
   ]
 }

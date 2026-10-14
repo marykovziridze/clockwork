@@ -21,11 +21,11 @@ test('plugin.json carries the kit version; marketplace.json lists the plugin at 
   const p = JSON.parse(read('.claude-plugin/plugin.json'));
   const m = JSON.parse(read('.claude-plugin/marketplace.json'));
   assert.equal(p.version, read('VERSION').trim());
-  assert.equal(p.name, 'clockwork');
-  assert.deepEqual(m.plugins.map((x) => [x.name, x.source]), [['clockwork', './']]);
+  assert.equal(p.name, 'clockwork-sessions');
+  assert.deepEqual(m.plugins.map((x) => [x.name, x.source]), [['clockwork-sessions', './']]);
 });
 
-test('the plugin skill is /clockwork:onboard, finds the kit at ${CLAUDE_PLUGIN_ROOT}, and keeps no placeholder path', () => {
+test('the plugin skill is /clockwork-sessions:onboard, finds the kit at ${CLAUDE_PLUGIN_ROOT}, and keeps no placeholder path', () => {
   const s = read('skills/onboard/SKILL.md');
   assert.match(s, /^name: onboard$/m);
   assert.match(s, /^disable-model-invocation: true$/m, 'only the user starts onboarding');
