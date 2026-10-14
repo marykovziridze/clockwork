@@ -38,13 +38,21 @@ Each step in detail: [docs/how-it-works.md](docs/how-it-works.md).
 
 Needs Claude Code, git and Node.js. Overnight runs need macOS.
 
+As a Claude Code plugin, then run `/clockwork:onboard` in the project:
+
+```sh
+claude plugin install clockwork --marketplace https://github.com/marykovziridze/clockwork
+```
+
+Or from a clone:
+
 ```sh
 git clone https://github.com/marykovziridze/clockwork ~/dev/clockwork
 node ~/dev/clockwork/install.mjs ~/dev/my-site --stack nextjs          # prints the plan
 node ~/dev/clockwork/install.mjs ~/dev/my-site --stack nextjs --apply  # writes it
 ```
 
-An existing project comes in through `/clockwork-onboard`. Upgrades, flags and what lands where: [docs/install.md](docs/install.md).
+An existing project comes in through `/clockwork:onboard` (plugin) or `/clockwork-onboard` (clone). Upgrades, flags and what lands where: [docs/install.md](docs/install.md).
 
 ## Other agents
 

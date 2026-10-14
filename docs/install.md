@@ -6,6 +6,7 @@ Every run of `install.mjs` is a dry run (it prints the plan and writes nothing) 
 
 | Goal | Command |
 |---|---|
+| Plugin | `claude plugin install clockwork --marketplace https://github.com/marykovziridze/clockwork` (Claude Code 2.1.292 or later; in a session: `/plugin install clockwork --marketplace https://github.com/marykovziridze/clockwork`), then `/clockwork:onboard` in the project. The plugin adds only that skill; hooks and rules land in the project it onboards, never in others. Update: `claude plugin update clockwork@clockwork` |
 | New project | `node "$K" "<project>" --stack nextjs` (or `wordpress`, `python`, `other`), then the same with `--apply` |
 | Upgrade | `node "$K" "<project>" --apply`. Unedited kit files are replaced; edited ones are kept as conflicts (`--force-managed` backs up, then replaces) |
 | Existing project | "Bring an existing project in" below; `--apply` refuses a project with its own records (decision D15 in WHY.md) |

@@ -1,0 +1,20 @@
+{
+  "name": "clockwork",
+  "displayName": "Clockwork",
+  "version": "2.5.0",
+  "description": "Run several Claude Code sessions on one project without them overwriting each other's work. /clockwork:onboard installs the hooks, task registry and rules into a project.",
+  "author": {
+    "name": "Mary Kovziridze"
+  },
+  "homepage": "https://github.com/marykovziridze/clockwork",
+  "repository": "https://github.com/marykovziridze/clockwork",
+  "license": "MIT",
+  "keywords": [
+    "parallel-sessions",
+    "hooks",
+    "git",
+    "worktrees",
+    "overnight",
+    "task-registry"
+  ]
+}

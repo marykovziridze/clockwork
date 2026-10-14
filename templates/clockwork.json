@@ -1,5 +1,5 @@
 {
-  "clockworkVersion": "2.4.0",
+  "clockworkVersion": "2.5.0",
   "project": "Acme",
   "stack": "nextjs",
   "registryDir": ".claude",

@@ -1,0 +1,12 @@
+{
+  "name": "clockwork",
+  "owner": { "name": "Mary Kovziridze" },
+  "description": "Clockwork: hooks, a task registry and rules for running several Claude Code sessions on one project.",
+  "plugins": [
+    {
+      "name": "clockwork",
+      "source": "./",
+      "description": "Run several Claude Code sessions on one project without them overwriting each other's work. /clockwork:onboard installs it into a project."
+    }
+  ]
+}
