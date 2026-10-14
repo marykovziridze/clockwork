@@ -12,6 +12,8 @@
 - a real overnight run, including a usage-limit reset;
 - a real `claude -w` session writing tasks;
 - the verify, intake and onboarding workflows on a real model (their tests use mocks);
-- pulling mail or calendar items.
+- pulling mail or calendar items;
+- a real Codex session: the Codex hooks are tested only with recorded Codex-format inputs (`test/codex-cleanup.test.mjs`);
+- `cleanup.mjs --apply` on a real project: its dry run was run on one (18 of 27 worktrees removable, 9.1 GB), its removal only on test repositories.
 
 Live projects join only through onboarding (decision D15 in [WHY.md](../WHY.md)).

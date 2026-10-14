@@ -10,6 +10,8 @@ Every run of `install.mjs` is a dry run (it prints the plan and writes nothing) 
 | Upgrade | `node "$K" "<project>" --apply`. Unedited kit files are replaced; edited ones are kept as conflicts (`--force-managed` backs up, then replaces) |
 | Existing project | "Bring an existing project in" below; `--apply` refuses a project with its own records (decision D15 in WHY.md) |
 | Registries in a sub-folder | add `--registry-dir "site/.claude"` and `--site-dir site` |
+| Codex hooks too | add `--codex`: writes `.codex/hooks.json` (then trust the project's `.codex/` folder and review the hooks with `/hooks` in Codex). Once the file exists, upgrades keep it current without the flag |
+| Remove finished task folders | `node .claude/tools/cleanup.mjs` in the main checkout lists every worktree with its size and why it may or may not go; `--apply` removes the ones that may |
 | `/clockwork-onboard` in every project | `node "$K" --global-skill --apply` (copies `onboard/` to `~/.claude/skills/`; backs up a changed one) |
 
 Also `--project "Name"`. `--apply` refuses a synced folder (iCloud Drive, Desktop with iCloud sync, OneDrive, Dropbox) unless you add `--allow-synced`. Kit tools skip iCloud-offloaded files, because reading one can hang, and say so.
@@ -27,6 +29,6 @@ All work happens on a staging copy and ends in `ONBOARDING-PLAN.md` with questio
 ## What lands in a project
 
 - **Project-owned** (created once, never overwritten): `AGENTS.md`, `CLAUDE.md` (line 1 `@AGENTS.md`), `.claude/clockwork.json`, the registries (TASKS, CLIENT, FACTS, MEETING-LOG, OPEN-ASKS, APPROVAL-QUEUE, DOC-MAP, ROUTING), `.claude/rules/design-system.md`, `.claude/skills/intake/routing.md`.
-- **Kit-managed** (replaced on upgrade, listed in `.claude/.clockwork-manifest.json`): `.claude/hooks/` (5), `tools/` (3), `agents/` (4), `skills/` (5), `workflows/` (3), `rules/` (registries, engineering, `stack-nextjs` or `stack-wordpress`), `overnight-settings.json`.
-- **Merged** (lines only added): `.claude/settings.json` (hook wiring), `.worktreeinclude`, `.gitignore`.
+- **Kit-managed** (replaced on upgrade, listed in `.claude/.clockwork-manifest.json`): `.claude/hooks/` (5), `tools/` (4), `agents/` (4), `skills/` (5), `workflows/` (3), `rules/` (registries, engineering, `stack-nextjs` or `stack-wordpress`), `overnight-settings.json`.
+- **Merged** (lines only added): `.claude/settings.json` (hook wiring), `.codex/hooks.json` (with `--codex`), `.worktreeinclude`, `.gitignore`.
 - **Per Mac, in no repo**: `~/.claude/clockwork-overnight-deny.json`, deny rules for each client's own connectors.

@@ -48,7 +48,7 @@ An existing project comes in through `/clockwork-onboard`. Upgrades, flags and w
 
 ## Other agents
 
-The rules live in `AGENTS.md`, which Codex, Cursor, GitHub Copilot and other agents read, and `registry.mjs` is plain Node. The guard and the stop check are Claude Code hooks, so only Claude Code enforces the rules. Not tested with other agents.
+The rules live in `AGENTS.md`, which Codex, Cursor, GitHub Copilot and other agents read, and `registry.mjs` is plain Node. Claude Code and Codex enforce them: `install.mjs --codex` wires the same hooks into Codex, where every question becomes a refusal because a Codex hook cannot ask. The Codex wiring is tested with recorded inputs only, not in a real Codex session. Other agents get the rules as text, with nothing enforcing them.
 
 ## Not proven yet
 

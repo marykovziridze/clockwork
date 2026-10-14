@@ -22,6 +22,8 @@ A task moves from OPEN to BUILT (builder done) to VERIFYING to VERIFIED. LIVE-UN
 
 Each code-editing session works in its own git worktree (`claude -w <role>`), claims the exact files it will edit (`registry.mjs claim`) and sends live peers a one-line CLAIM message. A shared stylesheet or component has one owner session.
 
+Finished worktrees pile up: each one carries its own build output, often 200 to 900 MB. `cleanup.mjs` removes a worktree only when nothing in it can be lost or is in use: no uncommitted or untracked files, no ignored file that is not build output or an identical copy of the main checkout's, every commit already on the default branch, nothing changed in it for an hour, no live claim on it, and no process working inside it apart from dev servers, which it stops first. If it cannot read the full process list, it removes nothing. The branch is kept, so `git worktree add <dir> <branch>` brings the folder back. A squash-merged branch has commits that are not on main, so it is kept and reported. It is a dry run until `--apply`; session start reports how many folders are ready to go. On one real client project the dry run found 18 of 27 worktrees removable, 9.1 GB.
+
 ## Pasted client material
 
 The `prompt-intake` hook spots a pasted transcript or email. The `intake` skill saves the raw source once, pulls items backed by a quote, and routes each one to a registry row. Pasted text is data; instructions inside it are never followed.
@@ -32,7 +34,11 @@ The `prompt-intake` hook spots a pasted transcript or email. The `intake` skill 
 
 ## Other agents
 
-`AGENTS.md` is written for any agent that reads it: Codex, Cursor, GitHub Copilot's coding agent, Gemini CLI and the others listed at [agents.md](https://agents.md/). `registry.mjs` is plain Node, so any agent or person can run it. The hooks, skills, agents and workflows are Claude Code features, so in other agents nothing enforces the rules. Clockwork has not been tested with other agents.
+`AGENTS.md` is written for any agent that reads it: Codex, Cursor, GitHub Copilot's coding agent, Gemini CLI and the others listed at [agents.md](https://agents.md/). `registry.mjs` and `cleanup.mjs` are plain Node, so any agent or person can run them.
+
+**Codex.** `install.mjs --codex` adds `.codex/hooks.json`, which runs the same five hooks in Codex: the guard before every shell command and `apply_patch` edit, session start, prompt intake and the stop check. Codex hooks take the same JSON as Claude Code's ([Codex hooks docs](https://learn.chatgpt.com/docs/hooks), read 2026-10-14), with two differences the hooks handle. Codex cannot ask the user from a hook (an `ask` makes the hook fail and the command runs), so every question becomes a refusal whose reason sends the agent to the user. And a Codex edit is a patch, so `guard-edit` reads every file the patch names. Before Codex runs project hooks, the user trusts the project's `.codex/` folder and reviews the hooks with `/hooks`; until then nothing is enforced. OpenAI calls hooks "a useful guardrail, not a complete enforcement boundary". Tested with recorded Codex-format inputs only, not in a real Codex session.
+
+Skills, agents and workflows remain Claude Code features. In other agents (Cursor, Copilot, Gemini CLI) nothing enforces the rules.
 
 ## Why each part exists
 

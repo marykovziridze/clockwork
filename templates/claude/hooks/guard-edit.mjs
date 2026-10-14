@@ -154,61 +154,85 @@ export function rulesFor(rel, rulesDir, skipped = []) {
   return out;
 }
 
+// Codex (CLOCKWORK_HOST=codex, set by .codex/hooks.json) edits through apply_patch: tool_input.command holds the patch,
+// whose "*** Add/Update/Delete File: <path>" and "*** Move to: <path>" lines name every file it touches (paths relative
+// to cwd). Codex has no "ask" (docs learn.chatgpt.com/docs/hooks: an "ask" makes the hook fail and the edit goes ahead),
+// so every ask is a deny there, with a reason that sends the agent to the user.
+const CODEX = process.env.CLOCKWORK_HOST === 'codex';
+export function patchFiles(patch) {
+  const files = [];
+  for (const m of String(patch || '').matchAll(/^\*\*\* (Add File|Update File|Delete File|Move to): (.+?)\s*$/gm)) files.push({ file: m[2], added: m[1] === 'Add File' || m[1] === 'Move to' });
+  return files;
+}
+const CODEX_NOTE = 'Codex cannot pause for the user\'s OK, so Clockwork blocked this. Ask the user in chat; go ahead only on their explicit yes, by the route they choose. ';
+const decide = (reason, overnight) => out({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: overnight || CODEX ? 'deny' : 'ask', permissionDecisionReason: CODEX && !overnight ? CODEX_NOTE + reason : reason } });
+
 async function main() {
   if (process.stdin.isTTY) process.exit(0);
   const got = await readStdin();
   if (got.why) return warn(`could not read the hook input (${got.why})`);
   let input;
   try { input = JSON.parse(got.raw || '{}'); } catch { return warn('the hook input was not JSON'); }
-  const file = input?.tool_input?.file_path || input?.tool_input?.notebook_path;
-  if (typeof file !== 'string' || !file) process.exit(0);
-  let hit = null, held = [], regFile = false, rules = [], wtCopy = null;
-  const abs = path.isAbsolute(file) ? file : path.join(input.cwd || process.cwd(), file);
+  const ti = input?.tool_input || {};
+  let targets;
+  if (input?.tool_name === 'apply_patch') {
+    targets = patchFiles(ti.command ?? ti.input ?? ti.patch);
+    if (!targets.length) return warn('apply_patch named no file this hook could read');
+  } else {
+    const file = ti.file_path || ti.notebook_path;
+    if (typeof file !== 'string' || !file) process.exit(0);
+    targets = [{ file, added: input.tool_name === 'Write' }];
+  }
   const overnight = process.env.OVERNIGHT === '1';
   const projectDir = process.env.CLAUDE_PROJECT_DIR || input.cwd || process.cwd();
+  let registryDir = '.claude';
   try {
-    let registryDir = '.claude';
     const cfgFile = path.join(projectDir, '.claude', 'clockwork.json');
     if (offloadState(cfgFile) === 'offloaded') note(cfgNote(cfgFile));
     else try { registryDir = JSON.parse(fs.readFileSync(cfgFile, 'utf8')).registryDir || '.claude'; } catch { /* default */ }
-    held = await heldByOthers(abs, input.session_id || '');
-    hit = mainCheckoutEdit(abs, registryDir);
-    regFile = registryOfProject(abs, projectDir, registryDir);
-    if (!regFile) wtCopy = worktreeKitCopy(abs);
-    if (input.tool_name === 'Write' && !fs.existsSync(abs)) {
-      let dir = path.dirname(abs); while (!fs.existsSync(dir) && path.dirname(dir) !== dir) dir = path.dirname(dir);
-      const top = git(dir, ['rev-parse', '--show-toplevel']) || projectDir;
-      const rulesDir = [path.join(top, '.claude', 'rules'), path.join(projectDir, '.claude', 'rules')].find((d) => fs.existsSync(d));
-      const skipped = [];
-      if (rulesDir) rules = rulesFor(path.relative(real(top), path.join(real(dir), path.relative(dir, abs))).split(path.sep).join('/'), rulesDir, skipped).map((n) => path.join(rulesDir, n));
-      for (const p of skipped) note(`${offloadNote(p)} (its path rules were not checked for this new file)`);
-    }
   } catch (e) { return warn(`internal error (${e && e.message})`); }
-  if (regFile) {
-    const reason = `${path.basename(abs)} is a registry file: registries are written only with registry.mjs, under its lock, so parallel sessions never overwrite each other's rows (AGENTS.md hard rule 3). `
-      + 'Use node "$CLOCKWORK_TOOLS/registry.mjs" mint/append/status for rows, line <FILE> --section "## …" --text "…" [--replace "<old line>"] for other lines, dedupe <ID> for a duplicate. Approve only a hand edit the user asked for.';
-    out({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: overnight ? 'deny' : 'ask', permissionDecisionReason: reason } });
+  const allRules = [];
+  for (const t of targets) {
+    let hit = null, held = [], regFile = false, rules = [], wtCopy = null;
+    const abs = path.isAbsolute(t.file) ? t.file : path.join(input.cwd || process.cwd(), t.file);
+    try {
+      held = await heldByOthers(abs, input.session_id || '');
+      hit = mainCheckoutEdit(abs, registryDir);
+      regFile = registryOfProject(abs, projectDir, registryDir);
+      if (!regFile) wtCopy = worktreeKitCopy(abs);
+      if (t.added && !fs.existsSync(abs)) {
+        let dir = path.dirname(abs); while (!fs.existsSync(dir) && path.dirname(dir) !== dir) dir = path.dirname(dir);
+        const top = git(dir, ['rev-parse', '--show-toplevel']) || projectDir;
+        const rulesDir = [path.join(top, '.claude', 'rules'), path.join(projectDir, '.claude', 'rules')].find((d) => fs.existsSync(d));
+        const skipped = [];
+        if (rulesDir) rules = rulesFor(path.relative(real(top), path.join(real(dir), path.relative(dir, abs))).split(path.sep).join('/'), rulesDir, skipped).map((n) => path.join(rulesDir, n));
+        for (const p of skipped) note(`${offloadNote(p)} (its path rules were not checked for this new file)`);
+      }
+    } catch (e) { return warn(`internal error (${e && e.message})`); }
+    if (regFile) {
+      decide(`${path.basename(abs)} is a registry file: registries are written only with registry.mjs, under its lock, so parallel sessions never overwrite each other's rows (AGENTS.md hard rule 3). `
+        + 'Use node "$CLOCKWORK_TOOLS/registry.mjs" mint/append/status for rows, line <FILE> --section "## …" --text "…" [--replace "<old line>"] for other lines, dedupe <ID> for a duplicate. Approve only a hand edit the user asked for.', overnight);
+    }
+    if (held.length) {
+      const c = held[0];
+      decide(`${path.basename(abs)} is claimed by session ${c.session} (${c.hit.join(', ')}; branch ${c.branch || '-'}; until ${c.until || c.expires}). `
+        + 'Never edit a file another session holds: send that session the change you need (SendMessage), or ask the user. See the holders: node "$CLOCKWORK_TOOLS/registry.mjs" claims', overnight);
+    }
+    if (wtCopy) {
+      decide(`${wtCopy.rel} here is this worktree's gitignored copy (.claude/ is gitignored on purpose, D13): git never sees an edit to it and removing the worktree deletes it. `
+        + `Make the change in the main copy, ${wtCopy.main}, from a session in the main checkout (Claude Code blocks edits to the main checkout from a worktree), or ask the user. Approve only a throwaway change.`, overnight);
+    }
+    if (hit) {
+      decide(`${hit.rel} is in the MAIN checkout while ${hit.others.length} other worktree(s) exist (${hit.others.slice(0, 3).map((p) => path.basename(p)).join(', ')}). `
+        + `Code is edited only in your own worktree (AGENTS.md hard rule 5): ${CODEX ? 'create one with `git worktree add`' : 'start one with `claude -w <task>` or use EnterWorktree'}, then edit there. `
+        + 'Registry lines go through node "$CLOCKWORK_TOOLS/registry.mjs".', overnight);
+    }
+    for (const r of rules) if (!allRules.includes(r)) allRules.push(r);
   }
-  if (held.length) {
-    const c = held[0];
-    const reason = `${path.basename(abs)} is claimed by session ${c.session} (${c.hit.join(', ')}; branch ${c.branch || '-'}; until ${c.until || c.expires}). `
-      + 'Never edit a file another session holds: send that session the change you need (SendMessage), or ask the user. See the holders: node "$CLOCKWORK_TOOLS/registry.mjs" claims';
-    out({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: overnight ? 'deny' : 'ask', permissionDecisionReason: reason } });
-  }
-  if (wtCopy) {
-    const reason = `${wtCopy.rel} here is this worktree's gitignored copy (.claude/ is gitignored on purpose, D13): git never sees an edit to it and removing the worktree deletes it. `
-      + `Make the change in the main copy, ${wtCopy.main}, from a session in the main checkout (Claude Code blocks edits to the main checkout from a worktree), or ask the user. Approve only a throwaway change.`;
-    out({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: overnight ? 'deny' : 'ask', permissionDecisionReason: reason } });
-  }
-  if (!hit) {
-    if (rules.length) out({ hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: `Path-scoped rules apply to ${path.basename(abs)} and load only when a matching file is READ, so a new file does not load them: ${rules.join(', ')}. If you have not read them in this session, read them now and check this file against them before you go on.` } });
-    if (notes.length) out({}); // fail open, but never silently
-    process.exit(0);
-  }
-  const reason = `${hit.rel} is in the MAIN checkout while ${hit.others.length} other worktree(s) exist (${hit.others.slice(0, 3).map((p) => path.basename(p)).join(', ')}). `
-    + 'Code is edited only in your own worktree (AGENTS.md hard rule 5): start one with `claude -w <task>` or use EnterWorktree, then edit there. '
-    + 'Registry lines go through node "$CLOCKWORK_TOOLS/registry.mjs".';
-  out({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: overnight ? 'deny' : 'ask', permissionDecisionReason: reason } });
+  const names = targets.map((t) => path.basename(t.file)).join(', ');
+  if (allRules.length) out({ hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: `Path-scoped rules apply to ${names} and load only when a matching file is READ, so a new file does not load them: ${allRules.join(', ')}. If you have not read them in this session, read them now and check this file against them before you go on.` } });
+  if (notes.length) out({}); // fail open, but never silently
+  process.exit(0);
 }
 
 if (process.argv[1] && real(process.argv[1]) === real(fileURLToPath(import.meta.url))) main();

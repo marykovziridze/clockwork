@@ -951,7 +951,11 @@ export function previewTextsOf(cfg) {
 // ---------------------------------------------------------------- main
 function write(fd, text) { try { fs.writeSync(fd, text); } catch { (fd === 2 ? process.stderr : process.stdout).write(text); } }
 
+// Codex (CLOCKWORK_HOST=codex) has no "ask": an "ask" makes its hook fail and the command runs unchecked
+// (docs learn.chatgpt.com/docs/hooks, PreToolUse). There every ask becomes a deny that sends the agent to the user.
+const CODEX = process.env.CLOCKWORK_HOST === 'codex';
 function emit(kind, reason, warnings = []) {
+  if (CODEX && kind === 'ask') { kind = 'deny'; reason = `Codex cannot pause for the user's OK, so Clockwork blocked this. Ask the user in chat; go ahead only on their explicit yes, by the route they choose. ${reason}`; }
   const out = { hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: kind, permissionDecisionReason: reason } };
   if (warnings.length) out.systemMessage = `clockwork guard-bash: ${warnings.join('; ')}`;
   write(1, JSON.stringify(out));

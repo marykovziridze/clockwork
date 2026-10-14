@@ -7,7 +7,7 @@ Tool-neutral, client-safe project rules. Claude-only notes: CLAUDE.md. Unfilled 
 - Build: `{{commands.build}}` · lint: `{{commands.lint}}` · test: `{{commands.test}}`
 - Preview deploy: `{{commands.previewDeploy}}` · production deploy: `{{commands.productionDeploy}}` (the user only)
 - Empty command = none set up. Say so; never guess one.
-- Tools (registry.mjs, overnight.sh, measure.js): `$CLOCKWORK_TOOLS` = the main checkout's `.claude/tools`, absolute. Claude Code sets it at session start; other agents write the path out.
+- Tools (registry.mjs, overnight.sh, measure.js): `$CLOCKWORK_TOOLS` = the main checkout's `.claude/tools`, absolute; Claude Code sets it, other agents write it out.
 - First session: fill each `{{…}}` in `.claude/rules/design-system.md` from the design source (tokens, theme.json, Tailwind, Figma variables); the user gives each "decide per project" value.
 
 ## Session lifecycle
@@ -32,7 +32,7 @@ Tool-neutral, client-safe project rules. Claude-only notes: CLAUDE.md. Unfilled 
 - Never edit a file with another session's uncommitted changes. Two correct changes that combine into a defect: fix your half, send the other to its owner with the numbers.
 - Re-measure a number a peer relays before acting on it, and say so.
 - A defect outside your task gets its own row; never slip it into your branch or another's.
-- Merging while main is checked out elsewhere: fetch, rebase on main, rebuild, re-check, then fast-forward.
+- Merging while main is checked out elsewhere: fetch, rebase on main, rebuild, re-check, fast-forward, then `node "$CLOCKWORK_TOOLS/cleanup.mjs" --path <worktree> --apply`.
 
 ## Hard rules
 Binary. Hooks enforce most; a block names the safe path: take it.
@@ -72,5 +72,5 @@ Binary. Hooks enforce most; a block names the safe path: take it.
 | Registry formats and commands | `.claude/rules/registries.md` |
 | Design rules | `.claude/rules/design-system.md` |
 | Code rules, stack traps | `.claude/rules/engineering.md` · `.claude/rules/stack-{{stack}}.md` if shipped |
-| Skills · agents · workflows | `.claude/`: skills intake, verify, overnight, handover, pre-send · agents verifier, checker, builder, extractor · workflows intake.js, verify-change.js, build-slices.js |
+| Skills · agents · workflows | Claude Code only, listed in CLAUDE.md; in `.claude/` (workflows: intake.js, verify-change.js, build-slices.js) |
 | Health check | `node .claude/hooks/clockwork-doctor.mjs --report` |

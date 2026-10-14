@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Clockwork installer — seeds or upgrades a project from templates/ (CONTRACT §1, §3, §4).
 // Usage: node install.mjs <projectDir> [--stack nextjs|wordpress|python|other] [--project "Name"]
-//        [--registry-dir <rel>] [--site-dir <rel>] [--apply] [--adopt] [--allow-synced] [--force-managed]
+//        [--registry-dir <rel>] [--site-dir <rel>] [--apply] [--adopt] [--allow-synced] [--force-managed] [--codex]
 //        node install.mjs --global-skill [--apply]   (installs /clockwork-onboard for every project on this Mac)
 // Default is a DRY RUN: prints the plan, writes nothing. Exit 0 ok · 1 refused / conflicts left · 2 crashed.
 // Env (tests): CLOCKWORK_TEMPLATES = templates dir; CLOCKWORK_SYNCED_ROOTS = synced roots (path.delimiter-separated; replaces the defaults).
@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 const STACKS = ['nextjs', 'wordpress', 'python', 'other'];
 const GITIGNORE = ['.claude/.state/', '.claude/worktrees/', '.claude/.clockwork-backups/', 'PM/.scratch/'];
 const MANIFEST = '.claude/.clockwork-manifest.json';
-const USAGE = 'Usage: node install.mjs <projectDir> [--stack nextjs|wordpress|python|other] [--project "Name"] [--registry-dir <rel>] [--site-dir <rel>] [--apply] [--adopt] [--allow-synced] [--force-managed]  ·  node install.mjs --global-skill [--apply]';
+const USAGE = 'Usage: node install.mjs <projectDir> [--stack nextjs|wordpress|python|other] [--project "Name"] [--registry-dir <rel>] [--site-dir <rel>] [--apply] [--adopt] [--allow-synced] [--force-managed] [--codex]  ·  node install.mjs --global-skill [--apply]';
 const REG_NAMES = ['TASKS.md', 'CLIENT.md', 'MEETING-LOG.md'];
 const RECORD_FILE = /^(tasks|client|client-requests|facts|meeting-log|open-asks|approval-queue|decisions)\.md$/i;
 
@@ -25,8 +25,8 @@ const readJson = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));
 const fail = (msg, code = 1) => { console.log(`ERR ${msg}`); process.exit(code); };
 
 function parseArgs(argv) {
-  const o = { apply: false, adopt: false, allowSynced: false, forceManaged: false, globalSkill: false, dir: null, stack: null, project: null, registryDir: null, siteDir: null };
-  const flags = { '--apply': 'apply', '--adopt': 'adopt', '--allow-synced': 'allowSynced', '--force-managed': 'forceManaged', '--global-skill': 'globalSkill' };
+  const o = { apply: false, adopt: false, allowSynced: false, forceManaged: false, globalSkill: false, codex: false, dir: null, stack: null, project: null, registryDir: null, siteDir: null };
+  const flags = { '--apply': 'apply', '--adopt': 'adopt', '--allow-synced': 'allowSynced', '--force-managed': 'forceManaged', '--global-skill': 'globalSkill', '--codex': 'codex' };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (flags[a]) o[flags[a]] = true;
@@ -40,7 +40,7 @@ function parseArgs(argv) {
     else o.dir = a;
   }
   if (o.globalSkill) {
-    const extra = o.dir ? `a project directory (${o.dir})` : ['adopt', 'allowSynced', 'forceManaged', 'stack', 'project', 'registryDir', 'siteDir'].filter((k) => o[k]).map((k) => `--${k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`).join(', ');
+    const extra = o.dir ? `a project directory (${o.dir})` : ['adopt', 'allowSynced', 'forceManaged', 'codex', 'stack', 'project', 'registryDir', 'siteDir'].filter((k) => o[k]).map((k) => `--${k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`).join(', ');
     if (extra) fail(`--global-skill takes only --apply, not ${extra}. ${USAGE}`);
     return o;
   }
@@ -97,6 +97,9 @@ function classify(rel, stack, registryDir) {
   if (rel === 'clockwork.json') return { kind: 'config', dest: '.claude/clockwork.json' };
   if (rel === 'worktreeinclude') return { kind: 'lines', dest: '.worktreeinclude' };
   if (rel.startsWith('registries/')) return { kind: 'owned', dest: path.posix.join(registryDir, rel.slice('registries/'.length)) };
+  // Codex hook wiring: same handler shape as settings.json (docs learn.chatgpt.com/docs/hooks), merged the same way.
+  // Installed with --codex, or kept current once the project has the file.
+  if (rel === 'codex/hooks.json') return { kind: 'settings', dest: '.codex/hooks.json', codex: true };
   if (!rel.startsWith('claude/')) return null;
   const sub = rel.slice('claude/'.length);
   const dest = `.claude/${sub}`;
@@ -293,6 +296,7 @@ function main() {
     const c = classify(rel, stack, registryDir);
     if (!c) { plan.push({ action: 'skip', dest: `templates/${rel}`, note: 'not mapped by CONTRACT §1' }); continue; }
     if (c.kind === 'skip') { plan.push({ action: 'skip', dest: c.dest, note: c.note }); continue; }
+    if (c.codex && !o.codex && !exists(P(c.dest))) { plan.push({ action: 'skip', dest: c.dest, note: 'Codex hooks: add --codex to install them' }); continue; }
     const src = path.join(TPL, rel);
     const mode = fs.statSync(src).mode & 0o111 ? 0o755 : null;
     let buf = fs.readFileSync(src);

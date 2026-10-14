@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.4.0 (2026-10-14)
+
+**Added**
+- `cleanup.mjs` removes finished task worktrees and the dev servers running in them. A worktree goes only when: it has no uncommitted or untracked files; every ignored file is build output or an identical copy of the main checkout's (a worktree-only `.env`, note or nested repository keeps it, because `git worktree remove` deletes ignored files without asking); every commit is on the default branch; nothing in it changed for an hour (`--idle-minutes`); no live claim names it; and no process works inside it apart from dev servers and the npm wrappers that started them. If the process list cannot be read in full, nothing is removed. `--apply` judges each folder again right before removing it, stops its dev servers (keeping the folder if one does not stop), then runs `git worktree remove` without `--force`; the branch is kept. `--path` limits it to one worktree. Session start reports how many are ready to go. On one real client project the dry run found 18 of 27 worktrees removable, 9.1 GB; `--apply` has run only on test repositories. Reviewed twice by a fresh agent. Its findings are fixed and tested: ignored files deleted, a stale check, a failed lsof read as "nothing running", any listener or a node-based agent killed, sessions that work by `cd` unseen, non-ASCII ignored file names, and a global prune. The second round of fixes was not reviewed again.
+- Codex support: `install.mjs --codex` writes `.codex/hooks.json`, which runs the five kit hooks in Codex. Under Codex every "ask" becomes a refusal (a Codex hook cannot ask the user), and `guard-edit` checks every file an `apply_patch` names. Tested with recorded Codex-format inputs, not in a real Codex session.
+- 896 offline tests (893 pass, 3 skipped without `CLOCKWORK_LIVE=1`), run 2026-10-14.
+
+**Changed**
+- AGENTS.md: the merge step ends with `cleanup.mjs --path <worktree> --apply`; the skills row points to CLAUDE.md for the Claude-only list, which keeps the file under its 7,000-byte warning.
+
 ## 2.3.4 (2026-10-09)
 
 **Changed**
