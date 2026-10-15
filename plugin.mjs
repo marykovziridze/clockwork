@@ -34,6 +34,7 @@ export const manifest = () => ({
   repository: 'https://github.com/marykovziridze/clockwork',
   supportUrl: 'https://github.com/marykovziridze/clockwork/discussions',
   documentationUrl: 'https://github.com/marykovziridze/clockwork/blob/main/docs/how-it-works.md',
+  privacyPolicyUrl: 'https://github.com/marykovziridze/clockwork/blob/main/PRIVACY.md',
   license: 'MIT',
   keywords: ['parallel-sessions', 'hooks', 'git', 'worktrees', 'overnight', 'task-registry'],
 });
